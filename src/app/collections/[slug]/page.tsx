@@ -1,24 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
 export default function CollectionPage() {
   const params = useParams();
-  const router = useRouter();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [collectionName, setCollectionName] = useState('');
 
   useEffect(() => {
     if (params.slug) {
-      // فك تشفير اسم القسم
       const decodedName = decodeURIComponent(params.slug as string);
       setCollectionName(decodedName);
 
-      async function fetchItems() {
+      // الدالة هنا مكتوبة برة عشان Vercel ميزعلش
+      const fetchItems = async () => {
         try {
           const { data, error } = await supabase
             .from('items')
@@ -32,7 +31,8 @@ export default function CollectionPage() {
         } finally {
           setLoading(false);
         }
-      }
+      };
+      
       fetchItems();
     }
   }, [params.slug]);
