@@ -163,7 +163,7 @@ export default function Home() {
                 </Link>
               </div>
             ) : (
-              <Link href="/login" className="text-white hover:text-[#D4AF37] font-bold text-sm transition hidden md:block">
+              <Link href="/login" className="text-white hover:text-[#D4AF37] font-bold text-sm transition block">
                 تسجيل الدخول
               </Link>
             )}
