@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 const ALL_COLLECTIONS = ['كتب ومراجع', 'رسائل جامعية', 'أبحاث علمية', 'مخطوطات', 'إنتاج هيئة التدريس', 'مشروعات الطلاب', 'الدوريات والمجلات', 'المحاضرات والمواد'];
 const ALL_DEPARTMENTS = ['الوثائق والمكتبات والمعلومات', 'النحو والصرف', 'البلاغة والنقد', 'الأدب والنقد', 'أصول اللغة', 'التاريخ والحضارة'];
 
-// 1. المكون الداخلي اللي بيستخدم useSearchParams
 function SearchContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
@@ -101,7 +100,6 @@ function SearchContent() {
   );
 }
 
-// 2. المكون الأساسي اللي بيعمل Suspense
 export default function SearchPage() {
   return (
     <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
