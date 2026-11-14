@@ -4,17 +4,30 @@
 
 @layer base {
   :root {
-    --primary: 155 48% 21%;
-    --primary-foreground: 0 0% 100%;
-    --accent: 46 65% 52%;
-    --accent-foreground: 155 48% 15%;
-    --background: 40 30% 98%;
-    --foreground: 155 30% 12%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 158 64% 20%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 158 64% 20%;
+    --radius: 1rem;
   }
-  body { @apply bg-background text-foreground antialiased; }
 }
 
-@layer components {
-  .btn-primary { @apply bg-[#1B4D3E] text-white px-6 py-3 rounded-lg font-bold; }
-  .btn-accent { @apply bg-[#D4AF37] text-[#1B4D3E] px-6 py-3 rounded-lg font-bold; }
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(at 0% 0%, hsla(158,64%,20%,0.05) 0px, transparent 50%),
+                      radial-gradient(at 100% 0%, hsla(45,93%,47%,0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4, h5, h6 { @apply font-serif; }
 }
