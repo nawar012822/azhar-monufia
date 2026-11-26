@@ -24,7 +24,16 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setErrorMsg('خطأ في الدخول: ' + error.message);
+      {
+        const m = (error.message || '').toLowerCase();
+        setErrorMsg(
+          m.includes('banned') ? 'هذا الحساب موقوف. تواصل مع إدارة الموقع.' :
+          m.includes('not confirmed') ? 'لم يتم تأكيد البريد بعد. استخدم «إنشاء حساب جديد» لإعادة إرسال الكود.' :
+          m.includes('invalid') ? 'البريد أو كلمة المرور غير صحيحة.' :
+          (error as any).status === 429 ? 'محاولات كثيرة، انتظر قليلًا.' :
+          'تعذّر تسجيل الدخول الآن، حاول لاحقًا.'
+        );
+      }
       setLoading(false);
     } else {
       router.push('/');
@@ -64,6 +73,8 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+
+          <div className="text-left -mt-2"><Link href="/forgot-password" className="text-sm text-[#1B4D3E] font-bold hover:underline">نسيت كلمة المرور؟</Link></div>
 
           {errorMsg && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl text-center font-bold">{errorMsg}</p>}
 
