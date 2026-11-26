@@ -1,62 +1,114 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { ROOT_PATH } from '@/lib/constants';
+import { loadAccess, Access } from '@/lib/repo';
 import { ArrowRight, Upload, CheckCircle } from 'lucide-react';
 
-const ALL_COLLECTIONS = ['كتب ومراجع', 'رسائل جامعية', 'أبحاث علمية', 'مخطوطات', 'إنتاج هيئة التدريس', 'مشروعات الطلاب', 'الدوريات والمجلات', 'المحاضرات والمواد'];
-const ALL_DEPARTMENTS = ['الوثائق والمكتبات والمعلومات', 'النحو والصرف', 'البلاغة والنقد', 'الأدب والنقد', 'أصول اللغة', 'التاريخ والحضارة'];
 
 export default function DepositPage() {
   const router = useRouter();
   const [form, setForm] = useState({
-    title: '', author: '', orcid: '', collection: 'كتب ومراجع', department: 'النحو والصرف',
+    title: '', author: '', orcid: '', collection: '', department: '',
     contributors: '', supervisor: '', abstract: '', subjects: '', keywords: '',
-    date_issued: new Date().getFullYear(), pages: '', isbn: '', publisher: 'كلية اللغة العربية بشبين الكوم',
-    language: 'العربية', access: 'open', rights: 'جميع الحقوق محفوظة للمؤلف'
+    date_issued: new Date().getFullYear(), pages: '', isbn: '', publisher: '',
+    language: 'ar', access: 'open', rights: 'جميع الحقوق محفوظة للمؤلف'
   });
   const [file, setFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  const [access, setAccess] = useState<Access | null>(null);
+  const [depts, setDepts] = useState<any[]>([]);
+  const [colls, setColls] = useState<any[]>([]);
+  const [direct, setDirect] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [facId, setFacId] = useState<number | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const a = await loadAccess(supabase);
+      setAccess(a);
+      if (a.userId && a.canUpload) {
+        const { data: all } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').like('path', `${ROOT_PATH}/%`).order('path');
+        const { data: mine } = await supabase.from('orgs').select('id,path').in('id', a.memberships.map(m => m.org_id).concat([-1]));
+        const mp = (mine || []).map((o: any) => o.path);
+        const ok = (all || []).filter((o: any) => o.kind === 'department' && (a.isSuper || mp.some((p: string) => o.path === p || o.path.startsWith(p + '/'))));
+        setDepts(ok);
+        const { data: cs } = await supabase.from('collections').select('id,org_id,slug,name_ar').order('sort');
+        setColls(cs || []);
+        if (ok[0]) setForm(f => ({ ...f, department: String(ok[0].id) }));
+      }
+      setReady(true);
+    })();
+  }, []);
+
+  // direct publishing depends on the chosen department (the super admin grants it per person)
+  useEffect(() => {
+    if (!form.department) return;
+    supabase.rpc('can_publish', { p_org: Number(form.department) }).then(({ data }) => setDirect(data === true));
+    const dep = depts.find(d => String(d.id) === form.department);
+    const facPath = dep ? dep.path.split('/').slice(0, 2).join('/') : '';
+    supabase.from('orgs').select('id').eq('path', facPath).maybeSingle().then(({ data }) => {
+      setFacId(data?.id ?? null);
+      const first = colls.find(c => c.org_id === data?.id);
+      setForm(f => (colls.some(c => String(c.id) === f.collection && c.org_id === data?.id) ? f : { ...f, collection: first ? String(first.id) : '' }));
+    });
+  }, [form.department, depts, colls]);
+
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!agreed) return alert('يجب الموافقة على إقرار حقوق الملكية');
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { alert('يجب تسجيل الدخول أولاً!'); router.push('/login'); return; }
+    if (!access?.userId) { alert('يجب تسجيل الدخول أولاً!'); router.push('/login'); return; }
     if (!file) return alert('الرجاء اختيار ملف');
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return alert('الملف لازم يكون PDF');
+    if (file.size > 50 * 1024 * 1024) return alert('حجم الملف أكبر من 50 ميجابايت');
+    if (!form.department || !form.collection) return alert('اختر القسم ونوع المادة');
 
     setUploading(true);
+    let key = '';
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage.from('books').upload(fileName, file);
+      const orgId = Number(form.department);
+      key = `${orgId}/${crypto.randomUUID()}.pdf`;
+      const { error: uploadError } = await supabase.storage.from('files').upload(key, file, { contentType: 'application/pdf' });
       if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage.from('books').getPublicUrl(fileName);
-      
-      const { error } = await supabase.from('items').insert([{
-        ...form,
-        file_url: publicUrl,
-        submitted_by: user.id,
-        status: 'pending',
-        pages: form.pages ? parseInt(form.pages) : 0
-      }]);
-      
+
+      const { data: row, error } = await supabase.from('items').insert([{
+        org_id: orgId, collection_id: Number(form.collection),
+        title: form.title, author: form.author, abstract: form.abstract, keywords: form.keywords,
+        language: form.language, date_issued: String(form.date_issued), publisher: form.publisher || null,
+        rights: form.rights, isbn: form.isbn || null, pages: form.pages ? parseInt(form.pages) : null,
+        access: form.access, submitted_by: access.userId, status: direct ? 'approved' : 'pending',
+        metadata: { supervisor: form.supervisor, contributors: form.contributors, subjects: form.subjects, orcid: form.orcid },
+      }]).select('id').single();
       if (error) throw error;
-      
-      alert('تم الإيداع بنجاح وسيتم مراجعته! 🎉');
+
+      const { error: fe } = await supabase.from('item_files').insert([{ item_id: row.id, bucket: 'files', file_key: key, size_bytes: file.size, mime: 'application/pdf' }]);
+      if (fe) throw fe;
+
+      alert(direct ? 'تم النشر مباشرة 🎉' : 'تم الإيداع بنجاح وسيتم مراجعته! 🎉');
       router.push('/profile');
     } catch (error: any) {
+      if (key) await supabase.storage.from('files').remove([key]);
       alert('حدث خطأ: ' + error.message);
     } finally {
       setUploading(false);
     }
   };
+
+  if (!ready) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
+  if (!access?.userId || !access.canUpload) return (
+    <main className="min-h-screen bg-[#F8F6F0] flex items-center justify-center p-4" dir="rtl">
+      <div className="bg-white p-10 rounded-3xl shadow text-center max-w-md border">
+        <h1 className="text-2xl font-bold mb-3">رفع المواد بصلاحية خاصة</h1>
+        <p className="text-gray-600 mb-6 leading-relaxed">{access?.userId ? 'حسابك للعرض والتحميل فقط. رفع المواد بيتفعل لكل قسم بواسطة مدير القسم أو المدير العام. اطلب منهم يضيفوك.' : 'سجّل الدخول أولاً.'}</p>
+        <Link href={access?.userId ? '/' : '/login'} className="bg-[#1B4D3E] text-white px-8 py-3 rounded-xl font-bold">{access?.userId ? 'الرئيسية' : 'تسجيل الدخول'}</Link>
+      </div>
+    </main>
+  );
 
   return (
     <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
@@ -65,7 +117,7 @@ export default function DepositPage() {
         <div className="bg-[#1B4D3E] text-white p-8 rounded-2xl mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold font-serif mb-2">إيداع مادة جديدة</h1>
-            <p className="text-sm text-gray-300">سيتم مراجعة المادة قبل النشر.</p>
+            <p className="text-sm text-gray-300">{direct ? 'عندك صلاحية النشر المباشر في هذا القسم.' : 'سيتم مراجعة المادة قبل النشر.'}</p>
           </div>
           <Link href="/" className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
             <ArrowRight className="w-4 h-4" /> الرئيسية
@@ -96,13 +148,13 @@ export default function DepositPage() {
                 <div>
                   <label className="block text-sm font-bold mb-2">نوع المادة *</label>
                   <select value={form.collection} onChange={e => setForm({...form, collection: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
-                    {ALL_COLLECTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                    {colls.filter(c => c.org_id === facId).map(c => <option key={c.id} value={c.id}>{c.name_ar}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">القسم العلمي *</label>
                   <select value={form.department} onChange={e => setForm({...form, department: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
-                    {ALL_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    {depts.map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 3))}{d.name_ar}</option>)}
                   </select>
                 </div>
               </div>
@@ -163,8 +215,8 @@ export default function DepositPage() {
             <h2 className="text-xl font-bold text-[#1B4D3E] mb-6 font-serif">٣. الملف والإتاحة</h2>
             
             <div className="mb-6">
-              <label className="block text-sm font-bold mb-2">الملف (PDF أو صور، حتى 50 ميجابايت)</label>
-              <input required type="file" onChange={e => setFile(e.target.files?.[0] || null)} className="w-full p-3 border rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-[#1B4D3E]/10 file:text-[#1B4D3E] hover:file:bg-[#1B4D3E]/20 cursor-pointer" />
+              <label className="block text-sm font-bold mb-2">الملف (PDF فقط، حتى 50 ميجابايت)</label>
+              <input required type="file" accept="application/pdf,.pdf" onChange={e => setFile(e.target.files?.[0] || null)} className="w-full p-3 border rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-[#1B4D3E]/10 file:text-[#1B4D3E] hover:file:bg-[#1B4D3E]/20 cursor-pointer" />
             </div>
 
             <div className="space-y-3">

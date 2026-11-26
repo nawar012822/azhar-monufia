@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Search, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ROOT_PATH, COLLECTIONS } from '@/lib/constants';
+import { flat, ITEM_SELECT } from '@/lib/repo';
 
-const ALL_COLLECTIONS = ['كتب ومراجع', 'رسائل جامعية', 'أبحاث علمية', 'مخطوطات', 'إنتاج هيئة التدريس', 'مشروعات الطلاب', 'الدوريات والمجلات', 'المحاضرات والمواد'];
-const ALL_DEPARTMENTS = ['الوثائق والمكتبات والمعلومات', 'النحو والصرف', 'البلاغة والنقد', 'الأدب والنقد', 'أصول اللغة', 'التاريخ والحضارة'];
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -16,6 +16,12 @@ function SearchContent() {
   const [query, setQuery] = useState(initialQuery);
   const [collection, setCollection] = useState('');
   const [department, setDepartment] = useState('');
+  const [orgList, setOrgList] = useState<any[]>([]);
+  const [collMap, setCollMap] = useState<Record<string, number>>({});
+  useEffect(() => {
+    supabase.from('orgs').select('id,name_ar,path,kind').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`).order('path').then(({ data }) => setOrgList(data || []));
+    supabase.from('collections').select('id,slug').then(({ data }) => { const m: Record<string, number> = {}; (data || []).forEach((c: any) => { m[c.slug] = c.id; }); setCollMap(m); });
+  }, []);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -26,24 +32,23 @@ function SearchContent() {
     setLoading(true);
     setSearched(true);
     
-    let dbQuery = supabase.from('items').select('id,title,author,abstract,collection,department,access,status').eq('status', 'approved').order('created_at', { ascending: false }).limit(100);
-    
-    // strip characters that have meaning in PostgREST filter syntax
-    const q = searchQuery.replace(/[,()%*\\]/g, ' ').trim().slice(0, 100);
-    if (q) dbQuery = dbQuery.or(`title.ilike.%${q}%,author.ilike.%${q}%,abstract.ilike.%${q}%`);
-    if (collection) dbQuery = dbQuery.eq('collection', collection);
-    if (department) dbQuery = dbQuery.eq('department', department);
-    
-    const { data, error } = await dbQuery;
-    if (error) { setError(true); setResults([]); } else if (data) setResults(data);
+    const root = orgList.find(o => o.id === Number(department)) || orgList.find(o => o.path === ROOT_PATH);
+    if (!root) { setError(true); setResults([]); setLoading(false); return; }
+    const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: 50, p_offset: 0 });
+    if (e1) { setError(true); setResults([]); setLoading(false); return; }
+    const list = (ids || []).map((r: any) => r.id);
+    if (list.length === 0) { setResults([]); setLoading(false); return; }
+    const { data, error } = await supabase.from('items').select(ITEM_SELECT).in('id', list);
+    const order = new Map<number, number>(list.map((id: number, i: number) => [id, i]));
+    if (error) { setError(true); setResults([]); } else setResults((data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)));
     setLoading(false);
   };
 
   useEffect(() => {
-    if (initialQuery) {
+    if (initialQuery && orgList.length) {
       executeSearch(initialQuery);
     }
-  }, [initialQuery]);
+  }, [initialQuery, orgList.length]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,14 +73,14 @@ function SearchContent() {
               <label className="block text-sm font-bold mb-2">المجموعة</label>
               <select value={collection} onChange={e => setCollection(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل المجموعات</option>
-                {ALL_COLLECTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+                {COLLECTIONS.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold mb-2">القسم</label>
               <select value={department} onChange={e => setDepartment(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل الأقسام</option>
-                {ALL_DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                {orgList.filter(o => o.kind !== 'university' && !o.path.endsWith('/unclassified')).map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 2))}{d.name_ar}</option>)}
               </select>
             </div>
           </div>

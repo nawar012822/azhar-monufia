@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { flat } from '@/lib/repo';
 import { ArrowRight, BookOpen, User, Eye } from 'lucide-react';
 
 export default function CollectionPage() {
@@ -14,14 +15,20 @@ export default function CollectionPage() {
 
   useEffect(() => {
     if (params.slug) {
-      const decodedName = decodeURIComponent(params.slug as string);
-      setCollectionName(decodedName);
-
+      const slug = decodeURIComponent(params.slug as string);
       const fetchItems = async () => {
         try {
-          const { data, error } = await supabase.from('items').select('id,created_at,title,author,abstract,collection,access,views,status').eq('status', 'approved').eq('collection', decodedName).order('created_at', { ascending: false });
+          const { data, error } = await supabase.from('items')
+            .select('id,created_at,title,author,abstract,access,status,collections!inner(slug,name_ar),orgs(name_ar,path),item_stats(views)')
+            .eq('status', 'approved').eq('collections.slug', slug).order('created_at', { ascending: false }).limit(200);
           if (error) throw error;
-          setItems(data || []);
+          const rows = (data || []).map(flat);
+          setItems(rows);
+          if (rows[0]) setCollectionName(rows[0].collection);
+          else {
+            const { data: c } = await supabase.from('collections').select('name_ar').eq('slug', slug).limit(1);
+            setCollectionName(c?.[0]?.name_ar || slug);
+          }
         } catch (err) { console.error(err); } finally { setLoading(false); }
       };
       fetchItems();

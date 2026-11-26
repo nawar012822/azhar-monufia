@@ -5,17 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Menu, Eye, X, User, Shield, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { COLLECTIONS, ROOT_PATH } from '@/lib/constants';
+import { ITEM_SELECT, flat, loadAccess, Access } from '@/lib/repo';
 
-const ALL_COLLECTIONS = [
-  { id: 'كتب ومراجع', name: 'الكتب والمراجع', icon: '📚' },
-  { id: 'رسائل جامعية', name: 'الرسائل الجامعية', icon: '🎓' },
-  { id: 'أبحاث علمية', name: 'الأبحاث العلمية', icon: '🔬' },
-  { id: 'مخطوطات', name: 'المخطوطات والتراث', icon: '📜' },
-  { id: 'إنتاج هيئة التدريس', name: 'إنتاج أعضاء هيئة التدريس', icon: '🖋️' },
-  { id: 'مشروعات الطلاب', name: 'مشروعات الطلاب', icon: '📝' },
-  { id: 'الدوريات والمجلات', name: 'الدوريات والمجلات', icon: '📰' },
-  { id: 'المحاضرات والمواد', name: 'المحاضرات والمواد التعليمية', icon: '🎧' },
-];
+const ALL_COLLECTIONS = COLLECTIONS.map(c => ({ ...c, id: c.slug }));
 
 export default function Home() {
   const router = useRouter();
@@ -28,20 +21,19 @@ export default function Home() {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string>('user');
+  const [access, setAccess] = useState<Access | null>(null);
+  const [orgs, setOrgs] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const { data, error } = await supabase.from('items').select('id,created_at,title,author,abstract,collection,department,access,views,date_issued,status').eq('status', 'approved').order('created_at', { ascending: false }).limit(200);
-        if (!error && data) setItems(data);
-
+        const { data, error } = await supabase.from('items').select(ITEM_SELECT).eq('status', 'approved').order('created_at', { ascending: false }).limit(200);
+        if (!error && data) setItems(data.map(flat));
+        const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').like('path', `${ROOT_PATH}/%`).order('path');
+        setOrgs(o || []);
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
-        if (user) {
-          const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-          if (profile) setRole(profile.role);
-        }
+        setAccess(await loadAccess(supabase));
       } catch (err) {
         console.error(err);
       } finally {
@@ -52,7 +44,7 @@ export default function Home() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (!session) setRole('user');
+      if (!session) setAccess(null); else loadAccess(supabase).then(setAccess);
     });
     return () => authListener.subscription.unsubscribe();
   }, []);
@@ -80,10 +72,10 @@ export default function Home() {
 
   const totalItems = items.length;
   const totalViews = items.reduce((sum, item) => sum + (item.views || 0), 0);
-  const booksCount = items.filter(i => i.collection === 'كتب ومراجع').length;
-  const thesesCount = items.filter(i => i.collection === 'رسائل جامعية').length;
-  const researchCount = items.filter(i => i.collection === 'أبحاث علمية').length;
-  const manuscriptsCount = items.filter(i => i.collection === 'مخطوطات').length;
+  const booksCount = items.filter(i => i.collection_slug === 'books').length;
+  const thesesCount = items.filter(i => i.collection_slug === 'theses').length;
+  const researchCount = items.filter(i => i.collection_slug === 'research').length;
+  const manuscriptsCount = items.filter(i => i.collection_slug === 'manuscripts').length;
 
   const mostViewed = [...items].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
   const latestItems = items.slice(0, 4);
@@ -115,12 +107,12 @@ export default function Home() {
             <Link href="/policies" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">سياسة الاستخدام</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">اتصل بنا</Link>
             
-            <Link href="/deposit" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-[#b59555] hover:bg-white transition text-right">+ إيداع مادة</Link>
+            {access?.canUpload && (<Link href="/deposit" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-[#b59555] hover:bg-white transition text-right">+ إيداع مادة</Link>)}
             
             {user ? (
               <>
                 <Link href="/profile" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">حسابي</Link>
-                {role === 'admin' && (
+                {access && (access.canReview || access.canUpload) && (
                   <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-[#1B4D3E] hover:bg-white transition">لوحة التحكم</Link>
                 )}
                 <button onClick={handleLogout} className="p-5 font-bold text-red-600 hover:bg-white transition text-right">خروج</button>
@@ -213,7 +205,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-[#1B4D3E] mb-8 font-serif text-right">تصفح حسب المجموعة</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {ALL_COLLECTIONS.map((c) => {
-              const count = items.filter(i => i.collection === c.id).length;
+              const count = items.filter(i => i.collection_slug === c.id).length;
               return (
                 <Link href={`/collections/${c.id}`} key={c.id} className="bg-white border border-gray-200 p-6 rounded-xl hover:shadow-md transition text-center flex flex-col items-center justify-center">
                   <span className="text-4xl mb-4">{c.icon}</span>
@@ -226,13 +218,38 @@ export default function Home() {
         </section>
 
         <section className="max-w-5xl mx-auto px-4 py-8">
+          <h2 className="text-3xl font-bold text-[#1B4D3E] mb-8 font-serif text-right">تصفح حسب الكلية والقسم</h2>
+          <div className="space-y-6">
+            {orgs.filter(o => o.kind === 'faculty').map(f => (
+              <div key={f.id} className="bg-white border border-gray-200 rounded-xl p-6">
+                <Link href={`/browse/${f.path}`} className="text-xl font-bold text-[#1B4D3E] hover:underline font-serif">{f.name_ar}</Link>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {orgs.filter(d => d.parent_id === f.id && !d.path.endsWith('/unclassified')).map(d => (
+                    <div key={d.id} className="border border-gray-200 rounded-lg px-4 py-2 bg-[#F8F6F0]">
+                      <Link href={`/browse/${d.path}`} className="font-bold text-gray-800 hover:text-[#1B4D3E]">{d.name_ar}</Link>
+                      {orgs.filter(x => x.parent_id === d.id).length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-2 text-sm">
+                          {orgs.filter(x => x.parent_id === d.id).map(x => (
+                            <Link key={x.id} href={`/browse/${x.path}`} className="text-gray-500 hover:text-[#1B4D3E]">• {x.name_ar}</Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="max-w-5xl mx-auto px-4 py-8">
           <h2 className="text-3xl font-bold text-[#1B4D3E] mb-6 font-serif text-right">أحدث الإضافات</h2>
           <div className="space-y-4">
             {latestItems.map(item => (
               <Link href={`/item/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition block">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm text-gray-500 flex items-center gap-1">
-                    {ALL_COLLECTIONS.find(c => c.id === item.collection)?.icon} {item.collection} • {item.date_issued || '2024'}
+                    {item.collection_icon} {item.collection} • {item.date_issued || '2024'}
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-[#1B4D3E] mb-2 font-serif">{item.title}</h3>
@@ -256,7 +273,7 @@ export default function Home() {
               <Link href={`/item/${item.id}`} key={item.id} className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition block">
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-sm text-gray-500 flex items-center gap-1">
-                    {ALL_COLLECTIONS.find(c => c.id === item.collection)?.icon} {item.collection} • {item.date_issued || '2024'}
+                    {item.collection_icon} {item.collection} • {item.date_issued || '2024'}
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-[#1B4D3E] mb-2 font-serif">{item.title}</h3>

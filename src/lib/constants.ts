@@ -1,17 +1,17 @@
-export const SITE_NAME = 'المستودع الرقمي | كلية اللغة العربية';
+export const SITE_NAME = 'المستودع الرقمي | جامعة الأزهر';
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://azhar-repo.vercel.app').replace(/\/$/, '');
 
-export const COLLECTIONS = [
-  { id: 'كتب ومراجع', name: 'الكتب والمراجع', icon: '📚' },
-  { id: 'رسائل جامعية', name: 'الرسائل الجامعية', icon: '🎓' },
-  { id: 'أبحاث علمية', name: 'الأبحاث العلمية', icon: '🔬' },
-  { id: 'مخطوطات', name: 'المخطوطات والتراث', icon: '📜' },
-  { id: 'إنتاج هيئة التدريس', name: 'إنتاج أعضاء هيئة التدريس', icon: '🖋️' },
-  { id: 'مشروعات الطلاب', name: 'مشروعات الطلاب', icon: '📝' },
-  { id: 'الدوريات والمجلات', name: 'الدوريات والمجلات', icon: '📰' },
-  { id: 'المحاضرات والمواد', name: 'المحاضرات والمواد التعليمية', icon: '🎧' },
-];
+// Root of the tree shown on this site. Add more universities later by adding rows, not code.
+export const ROOT_PATH = process.env.NEXT_PUBLIC_ROOT_PATH || 'azhar';
+export const DEFAULT_FACULTY_PATH = process.env.NEXT_PUBLIC_FACULTY_PATH || 'azhar/arabic-shebin';
 
-// Columns used by list pages (no "select *").
-export const LIST_COLUMNS =
-  'id,created_at,title,author,abstract,collection,department,access,views,status';
+export const COLLECTIONS = [
+  { slug: 'books', name: 'الكتب والمراجع', icon: '📚' },
+  { slug: 'theses', name: 'الرسائل الجامعية', icon: '🎓' },
+  { slug: 'research', name: 'الأبحاث العلمية', icon: '🔬' },
+  { slug: 'manuscripts', name: 'المخطوطات والتراث', icon: '📜' },
+  { slug: 'faculty-output', name: 'إنتاج أعضاء هيئة التدريس', icon: '🖋️' },
+  { slug: 'student-projects', name: 'مشروعات الطلاب', icon: '📝' },
+  { slug: 'periodicals', name: 'الدوريات والمجلات', icon: '📰' },
+  { slug: 'lectures', name: 'المحاضرات والمواد التعليمية', icon: '🎧' },
+];

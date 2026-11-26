@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { loadAccess, Access, ITEM_SELECT, flat, STATUS_AR, ACCESS_AR } from '@/lib/repo';
 import { Save, LogOut, Heart, FileText } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -14,6 +15,7 @@ export default function ProfilePage() {
   const [myItems, setMyItems] = useState<any[]>([]);
   const [favItems, setFavItems] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [access, setAccess] = useState<Access | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -21,14 +23,15 @@ export default function ProfilePage() {
       if (!user) { router.push('/login'); return; }
       setUser(user);
 
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (profileData) setProfile(profileData);
 
-      const { data: itemsData } = await supabase.from('items').select('*').eq('submitted_by', user.id).order('created_at', { ascending: false });
-      setMyItems(itemsData || []);
+      setAccess(await loadAccess(supabase));
+      const { data: itemsData } = await supabase.from('items').select(ITEM_SELECT).eq('submitted_by', user.id).order('created_at', { ascending: false });
+      setMyItems((itemsData || []).map(flat));
 
-      const { data: favsData } = await supabase.from('favorites').select('item_id, items(*)').eq('user_id', user.id);
-      setFavItems(favsData?.map((f: any) => f.items).filter(Boolean) || []);
+      const { data: favsData } = await supabase.from('favorites').select(`item_id, items(${ITEM_SELECT})`).eq('user_id', user.id);
+      setFavItems(favsData?.map((f: any) => f.items).filter(Boolean).map(flat) || []);
 
       setLoading(false);
     }
@@ -38,7 +41,8 @@ export default function ProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await supabase.from('profiles').update({ full_name: profile.full_name, orcid: profile.orcid }).eq('id', user.id);
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, email: user.email, full_name: profile.full_name, orcid: profile.orcid });
+    if (error) { alert('تعذر الحفظ: ' + error.message); setSaving(false); return; }
     alert('تم حفظ البيانات بنجاح!');
     setSaving(false);
   };
@@ -54,7 +58,7 @@ export default function ProfilePage() {
         <div className="bg-[#1B4D3E] text-white p-8 rounded-2xl shadow-sm flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold font-serif mb-2">حسابي</h1>
-            <p className="text-gray-300">{profile.role === 'admin' ? 'مدير عام' : profile.role === 'moderator' ? 'مشرف ومراجع' : 'عضو مسجل'}</p>
+            <p className="text-gray-300">{access?.isSuper ? 'المدير العام' : access && access.best >= 3 ? 'مدير' : access && access.best === 2 ? 'مراجع' : access && access.best === 1 ? 'رافع مواد' : 'عضو مسجل (عرض وتحميل)'}</p>
           </div>
           <button onClick={handleLogout} className="bg-red-500/20 text-red-100 hover:bg-red-500/40 px-5 py-2 rounded-xl transition flex items-center gap-2"><LogOut className="w-4 h-4"/> خروج</button>
         </div>
@@ -84,19 +88,19 @@ export default function ProfilePage() {
         <div className="pt-4">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#1B4D3E] font-serif flex items-center gap-2"><FileText className="w-6 h-6 text-[#D4AF37]"/> موادي المودعة ({myItems.length})</h2>
-            <Link href="/deposit" className="bg-[#b59555] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#a08245] transition">+ إيداع مادة جديدة</Link>
+            {access?.canUpload && (<Link href="/deposit" className="bg-[#b59555] text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-[#a08245] transition">+ إيداع مادة جديدة</Link>)}
           </div>
           
           {myItems.length === 0 ? (
-            <div className="bg-white p-8 text-center rounded-2xl border text-gray-500">لم تقم بإيداع أي مواد بعد.</div>
+            <div className="bg-white p-8 text-center rounded-2xl border text-gray-500">{access?.canUpload ? 'لم تقم بإيداع أي مواد بعد.' : 'حسابك للعرض والتحميل. رفع المواد يفعّله مدير القسم أو المدير العام.'}</div>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {myItems.map(item => (
                 <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-md transition">
                   <h3 className="text-lg font-bold text-[#1B4D3E] mb-2 font-serif line-clamp-1">{item.title}</h3>
                   <div className="flex flex-wrap gap-2 text-xs font-bold">
-                    <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full">{item.status === 'approved' ? 'معتمد ومنشور' : 'قيد المراجعة'}</span>
-                    <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full">{item.access === 'open' ? 'متاح مفتوح' : 'مقيد'}</span>
+                    <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full">{STATUS_AR[item.status] || item.status}</span>
+                    <span className="bg-orange-50 text-orange-700 px-3 py-1 rounded-full">{ACCESS_AR[item.access]}</span>
                   </div>
                 </Link>
               ))}
