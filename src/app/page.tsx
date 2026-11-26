@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Menu, Eye, X, User, Shield, LogOut } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import ResearchAssistantWidget from '@/components/ResearchAssistantWidget'; // تم إضافة المساعد هنا
 
 const ALL_COLLECTIONS = [
   { id: 'كتب ومراجع', name: 'الكتب والمراجع', icon: '📚' },
@@ -34,7 +33,7 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { data, error } = await supabase.from('items').select('*').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('items').select('id,created_at,title,author,abstract,collection,department,access,views,date_issued,status').eq('status', 'approved').order('created_at', { ascending: false }).limit(200);
         if (!error && data) setItems(data);
 
         const { data: { user } } = await supabase.auth.getUser();
@@ -76,7 +75,7 @@ export default function Home() {
 
   // نتائج البحث المنسدلة (أول 5 نتائج)
   const dropdownResults = searchQuery 
-    ? items.filter(item => item.title.includes(searchQuery) || item.author.includes(searchQuery) || item.abstract.includes(searchQuery)).slice(0, 5)
+    ? items.filter(item => (item.title || '').includes(searchQuery) || (item.author || '').includes(searchQuery) || (item.abstract || '').includes(searchQuery)).slice(0, 5)
     : [];
 
   const totalItems = items.length;
@@ -285,7 +284,6 @@ export default function Home() {
         </div>
       </footer>
 
-      <ResearchAssistantWidget />
     </div>
   );
 }

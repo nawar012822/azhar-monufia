@@ -1,14 +1,23 @@
 import type { Metadata } from "next";
 import { Cairo, Amiri } from "next/font/google";
 import "./globals.css";
+import { SITE_URL } from "@/lib/constants";
 import ResearchAssistantWidget from "@/components/ResearchAssistantWidget";
 
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 const amiri = Amiri({ weight: ["400", "700"], subsets: ["arabic"], variable: "--font-amiri" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "المستودع الرقمي | كلية اللغة العربية بالمنوفية",
   description: "أرشيف علمي شامل - جامعة الأزهر",
+  openGraph: {
+    title: "المستودع الرقمي | كلية اللغة العربية",
+    description: "أرشيف علمي شامل - جامعة الأزهر",
+    locale: "ar_EG",
+    type: "website",
+    images: ["/logo.jpg"],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

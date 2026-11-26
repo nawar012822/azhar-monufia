@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# المستودع الرقمي - كلية اللغة العربية (Azhar repository)
 
-## Getting Started
+Next.js 14 + Supabase. Same pages and features as before, upgraded.
 
-First, run the development server:
+## Run
+    npm ci
+    cp .env.example .env.local   # set GROQ_API_KEY for the assistant
+    npm run dev                  # or: npm run build && npm start
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What changed vs the Nov 15 version
+- Item pages are server-rendered with real titles, descriptions and Open Graph tags (Google can read them). Non-approved items still open for their owners/moderators via the client lookup, and are not indexed.
+- Public lists (home, collections, search) only load approved items and only the columns they use.
+- Search escapes filter characters, caps the result count and shows an error state.
+- Restricted items now require sign-in to show the file buttons; metadata-only items show a notice.
+- /api/chat: input validation, message and length caps, per-IP burst limit, timeout, no internal error text returned. For a hard limit across instances add Upstash/Vercel KV.
+- AI assistant mounted once (it was mounted twice on the home page).
+- sitemap.xml, robots.txt, 404 and error pages, metadataBase, .env.example.
+- Supabase URL/key can come from env; defaults keep the current project.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Not done / needs the owner
+- Storage bucket "books" is public: restricted files are still reachable by direct URL. Real enforcement needs a private bucket + signed URLs (changes the live data setup).
+- RLS policies were not visible to us. Run supabase/audit.sql and review before relying on the client-side role checks in /dashboard.

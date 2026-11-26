@@ -19,7 +19,7 @@ export default function CollectionPage() {
 
       const fetchItems = async () => {
         try {
-          const { data, error } = await supabase.from('items').select('*').eq('collection', decodedName).order('created_at', { ascending: false });
+          const { data, error } = await supabase.from('items').select('id,created_at,title,author,abstract,collection,access,views,status').eq('status', 'approved').eq('collection', decodedName).order('created_at', { ascending: false });
           if (error) throw error;
           setItems(data || []);
         } catch (err) { console.error(err); } finally { setLoading(false); }

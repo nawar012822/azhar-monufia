@@ -19,19 +19,23 @@ function SearchContent() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [error, setError] = useState(false);
 
   const executeSearch = async (searchQuery: string) => {
+    setError(false);
     setLoading(true);
     setSearched(true);
     
-    let dbQuery = supabase.from('items').select('*');
+    let dbQuery = supabase.from('items').select('id,title,author,abstract,collection,department,access,status').eq('status', 'approved').order('created_at', { ascending: false }).limit(100);
     
-    if (searchQuery) dbQuery = dbQuery.or(`title.ilike.%${searchQuery}%,author.ilike.%${searchQuery}%,abstract.ilike.%${searchQuery}%`);
+    // strip characters that have meaning in PostgREST filter syntax
+    const q = searchQuery.replace(/[,()%*\\]/g, ' ').trim().slice(0, 100);
+    if (q) dbQuery = dbQuery.or(`title.ilike.%${q}%,author.ilike.%${q}%,abstract.ilike.%${q}%`);
     if (collection) dbQuery = dbQuery.eq('collection', collection);
     if (department) dbQuery = dbQuery.eq('department', department);
     
     const { data, error } = await dbQuery;
-    if (!error && data) setResults(data);
+    if (error) { setError(true); setResults([]); } else if (data) setResults(data);
     setLoading(false);
   };
 
@@ -92,7 +96,8 @@ function SearchContent() {
                 <p className="text-gray-500 text-sm line-clamp-2">{item.abstract}</p>
               </Link>
             ))}
-            {results.length === 0 && <p className="text-gray-500 bg-white p-8 rounded-xl border text-center">لا توجد نتائج مطابقة.</p>}
+            {error && <p className="text-red-600 bg-white p-8 rounded-xl border text-center">تعذر تنفيذ البحث الآن، حاول مرة أخرى.</p>}
+            {!error && results.length === 0 && <p className="text-gray-500 bg-white p-8 rounded-xl border text-center">لا توجد نتائج مطابقة.</p>}
           </div>
         </div>
       )}
