@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { COLLECTIONS, ROOT_PATH } from '@/lib/constants';
 import { loadAccess, Access, ITEM_SELECT, flat, ROLE_AR, STATUS_AR, ACCESS_AR, slugify } from '@/lib/repo';
+import MembersPanel from '@/components/MembersPanel';
 import { ShieldAlert, Search, Trash2, CheckCircle, XCircle, Eye, Download } from 'lucide-react';
 
 type Tab = 'review' | 'materials' | 'members' | 'structure' | 'stats';
@@ -17,15 +18,10 @@ export default function DashboardPage() {
   const [access, setAccess] = useState<Access | null>(null);
   const [orgs, setOrgs] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
   const [tab, setTab] = useState<Tab>('review');
   const [q, setQ] = useState('');
   const [msg, setMsg] = useState('');
 
-  // add-member form
-  const [email, setEmail] = useState('');
-  const [mOrg, setMOrg] = useState('');
-  const [mRole, setMRole] = useState('uploader');
   // add-org form
   const [oParent, setOParent] = useState('');
   const [oName, setOName] = useState('');
@@ -50,13 +46,6 @@ export default function DashboardPage() {
       setOrgs(o || []);
       const { data: it } = await supabase.from('items').select(ITEM_SELECT).order('created_at', { ascending: false }).limit(300);
       setItems((it || []).map(flat));
-      if (a.isSuper || a.best >= 3) {
-        const { data: ms } = await supabase.from('memberships').select('user_id,org_id,role,can_publish');
-        const ids = Array.from(new Set((ms || []).map((m: any) => m.user_id)));
-        const { data: ps } = await supabase.from('profiles').select('id,email,full_name').in('id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']);
-        const pm = new Map((ps || []).map((p: any) => [p.id, p]));
-        setMembers((ms || []).map((m: any) => ({ ...m, profile: pm.get(m.user_id) })));
-      }
     }
     setLoading(false);
   };
@@ -81,29 +70,6 @@ export default function DashboardPage() {
     if (error) return alert('خطأ: ' + error.message);
     if (!count) return alert('الحذف للمدير فقط.');
     setItems(items.filter(i => i.id !== id));
-  };
-
-  const addMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !mOrg) return;
-    const { data: found, error } = await supabase.rpc('find_user_by_email', { p_email: email.trim() });
-    if (error) return alert('خطأ: ' + error.message);
-    const u = found?.[0];
-    if (!u) return alert('مفيش حساب بالإيميل ده. لازم الشخص يسجّل في الموقع الأول بنفس الإيميل.');
-    const { error: e2 } = await supabase.from('memberships').upsert({ user_id: u.id, org_id: Number(mOrg), role: mRole }, { onConflict: 'user_id,org_id' });
-    if (e2) return alert('خطأ: ' + e2.message);
-    setEmail(''); flash('تمت إضافة الصلاحية.'); load();
-  };
-  const togglePublish = async (m: any) => {
-    const { error } = await supabase.from('memberships').update({ can_publish: !m.can_publish }).eq('user_id', m.user_id).eq('org_id', m.org_id);
-    if (error) return alert('خطأ: ' + error.message);
-    load();
-  };
-  const removeMember = async (m: any) => {
-    if (!confirm('إلغاء هذه الصلاحية؟')) return;
-    const { error } = await supabase.from('memberships').delete().eq('user_id', m.user_id).eq('org_id', m.org_id);
-    if (error) return alert('خطأ: ' + error.message);
-    load();
   };
 
   const addOrg = async (e: React.FormEvent) => {
@@ -138,7 +104,7 @@ export default function DashboardPage() {
   const byColl: Record<string, number> = {}; items.forEach(i => { byColl[i.collection] = (byColl[i.collection] || 0) + 1; });
   const top = [...items].sort((a, b) => b.views - a.views).slice(0, 5);
   const tabs: [Tab, string][] = [['review', `صندوق المراجعة${pending.length ? ` (${pending.length})` : ''}`], ['materials', 'كل المواد']];
-  if (canAdmin) tabs.push(['members', 'الأعضاء والصلاحيات'], ['structure', 'الكليات والأقسام'], ['stats', 'الإحصائيات']);
+  if (canAdmin) tabs.push(['members', 'الأعضاء'], ['structure', 'الكليات والأقسام'], ['stats', 'الإحصائيات']);
   const label = access.isSuper ? 'المدير العام' : access.best >= 3 ? 'مدير' : 'مراجع';
 
   return (
@@ -214,43 +180,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {tab === 'members' && canAdmin && (
-          <div className="space-y-6">
-            <form onSubmit={addMember} className="bg-white p-6 rounded-2xl border space-y-4">
-              <h3 className="text-lg font-bold text-[#1B4D3E]">إضافة صلاحية لشخص</h3>
-              <input type="email" dir="ltr" required value={email} onChange={e => setEmail(e.target.value)} placeholder="إيميل الشخص (لازم يكون مسجّل في الموقع)" className="w-full p-3 border rounded-xl" />
-              <div className="grid md:grid-cols-2 gap-3">
-                <select required value={mOrg} onChange={e => setMOrg(e.target.value)} className="p-3 border rounded-xl">
-                  <option value="">اختر الجامعة / الكلية / القسم</option>
-                  {adminOrgs.map(o => <option key={o.id} value={o.id}>{'— '.repeat(Math.max(0, o.path.split('/').length - 1))}{o.name_ar} ({KIND_AR[o.kind]})</option>)}
-                </select>
-                <select value={mRole} onChange={e => setMRole(e.target.value)} className="p-3 border rounded-xl">
-                  <option value="uploader">رافع مواد (يرفع وتتراجع مواده)</option>
-                  <option value="moderator">مراجع (يراجع وينشر)</option>
-                  {access.isSuper && <option value="admin">مدير (المدير العام فقط يعيّنه)</option>}
-                </select>
-              </div>
-              <p className="text-xs text-gray-500">تعيين المدراء والسماح بالنشر المباشر من حق المدير العام فقط.</p>
-              <button className="bg-[#1B4D3E] text-white px-6 py-3 rounded-xl font-bold">إضافة</button>
-            </form>
-
-            <div className="space-y-3">
-              {members.map(m => (
-                <div key={`${m.user_id}-${m.org_id}`} className="bg-white p-5 rounded-2xl border flex flex-wrap items-center gap-3 justify-between">
-                  <div>
-                    <p className="font-bold text-[#1B4D3E]">{m.profile?.full_name || 'بدون اسم'} <span className="text-gray-400 text-sm" dir="ltr">{m.profile?.email}</span></p>
-                    <p className="text-sm text-gray-600">{ROLE_AR[m.role]} في: {orgName(m.org_id)}{m.can_publish ? ' • نشر مباشر' : ''}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    {access.isSuper && <button onClick={() => togglePublish(m)} className="px-3 py-1.5 rounded-lg border text-sm font-bold hover:bg-gray-50">{m.can_publish ? 'إلغاء النشر المباشر' : 'السماح بالنشر المباشر'}</button>}
-                    <button onClick={() => removeMember(m)} className="px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 text-sm font-bold">إلغاء الصلاحية</button>
-                  </div>
-                </div>
-              ))}
-              {members.length === 0 && <p className="text-center text-gray-500 py-8 bg-white rounded-2xl border">لا يوجد أعضاء بصلاحيات.</p>}
-            </div>
-          </div>
-        )}
+        {tab === 'members' && canAdmin && <MembersPanel access={access} orgs={orgs} />}
 
         {tab === 'structure' && canAdmin && (
           <div className="space-y-6">
