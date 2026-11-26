@@ -133,7 +133,7 @@ begin
   update repo.user_status set banned = s.banned, suspended_until = s.suspended_until, no_download = s.no_download,
          no_upload = s.no_upload, updated_by = auth.uid(), updated_at = now() where user_id = p_user;
   -- sign-in itself is stopped too (ban/suspend), and open sessions are closed
-  until_ts := case when s.banned then 'infinity'::timestamptz when s.suspended_until > now() then s.suspended_until end;
+  until_ts := case when s.banned then '2999-12-31'::timestamptz when s.suspended_until > now() then s.suspended_until end;
   update auth.users set banned_until = until_ts where id = p_user;
   if until_ts is not null then
     begin delete from auth.sessions where user_id = p_user; exception when others then null; end;
