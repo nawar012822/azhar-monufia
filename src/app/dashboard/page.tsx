@@ -1,5 +1,6 @@
 'use client';
 
+import { notify } from '@/lib/notify';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -56,19 +57,19 @@ export default function DashboardPage() {
 
   const setStatus = async (id: number, status: string) => {
     const { error } = await supabase.from('items').update({ status }).eq('id', id);
-    if (error) return alert('خطأ: ' + error.message);
+    if (error) return notify('خطأ: ' + error.message);
     setItems(items.map(i => i.id === id ? { ...i, status } : i));
   };
   const setAccessLevel = async (id: number, a: string) => {
     const { error } = await supabase.from('items').update({ access: a }).eq('id', id);
-    if (error) return alert('خطأ: ' + error.message);
+    if (error) return notify('خطأ: ' + error.message);
     setItems(items.map(i => i.id === id ? { ...i, access: a } : i));
   };
   const del = async (id: number) => {
     if (!confirm('هل أنت متأكد من حذف هذه المادة نهائياً؟')) return;
     const { error, count } = await supabase.from('items').delete({ count: 'exact' }).eq('id', id);
-    if (error) return alert('خطأ: ' + error.message);
-    if (!count) return alert('الحذف للمدير فقط.');
+    if (error) return notify('خطأ: ' + error.message);
+    if (!count) return notify('الحذف للمدير فقط.');
     setItems(items.filter(i => i.id !== id));
   };
 
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     const slug = slugify(oSlug) || `d-${Date.now().toString(36)}`;
     const parent = orgs.find(o => o.id === Number(oParent));
     const { data, error } = await supabase.from('orgs').insert({ parent_id: Number(oParent), slug, name_ar: oName.trim(), kind: 'department' }).select('id').single();
-    if (error) return alert('خطأ: ' + error.message);
+    if (error) return notify('خطأ: ' + error.message);
     if (parent?.kind === 'university') {
       // a new faculty starts with the standard collections
       await supabase.from('collections').insert(COLLECTIONS.map((c, i) => ({ org_id: data.id, slug: c.slug, name_ar: c.name, icon: c.icon, sort: i + 1 })));

@@ -1,5 +1,6 @@
 'use client';
 
+import { notify } from '@/lib/notify';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -61,12 +62,12 @@ export default function DepositPage() {
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agreed) return alert('يجب الموافقة على إقرار حقوق الملكية');
-    if (!access?.userId) { alert('يجب تسجيل الدخول أولاً!'); router.push('/login'); return; }
-    if (!file) return alert('الرجاء اختيار ملف');
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return alert('الملف لازم يكون PDF');
-    if (file.size > 50 * 1024 * 1024) return alert('حجم الملف أكبر من 50 ميجابايت');
-    if (!form.department || !form.collection) return alert('اختر القسم ونوع المادة');
+    if (!agreed) return notify('يجب الموافقة على إقرار حقوق الملكية');
+    if (!access?.userId) { notify('يجب تسجيل الدخول أولاً!'); router.push('/login'); return; }
+    if (!file) return notify('الرجاء اختيار ملف');
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return notify('الملف لازم يكون PDF');
+    if (file.size > 50 * 1024 * 1024) return notify('حجم الملف أكبر من 50 ميجابايت');
+    if (!form.department || !form.collection) return notify('اختر القسم ونوع المادة');
 
     setUploading(true);
     let key = '';
@@ -89,11 +90,11 @@ export default function DepositPage() {
       const { error: fe } = await supabase.from('item_files').insert([{ item_id: row.id, bucket: 'files', file_key: key, size_bytes: file.size, mime: 'application/pdf' }]);
       if (fe) throw fe;
 
-      alert(direct ? 'تم النشر مباشرة 🎉' : 'تم الإيداع بنجاح وسيتم مراجعته! 🎉');
+      notify(direct ? 'تم النشر مباشرة 🎉' : 'تم الإيداع بنجاح وسيتم مراجعته! 🎉');
       router.push('/profile');
     } catch (error: any) {
       if (key) await supabase.storage.from('files').remove([key]);
-      alert('حدث خطأ: ' + error.message);
+      notify('حدث خطأ: ' + error.message);
     } finally {
       setUploading(false);
     }

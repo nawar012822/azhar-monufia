@@ -1,5 +1,6 @@
 'use client';
 
+import { notify } from '@/lib/notify';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -23,7 +24,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
     setBusy(true);
     const url = await fileLink(supabase, file, download);
     setBusy(false);
-    if (!url) { alert('تعذر فتح الملف الآن، حاول مرة أخرى.'); return; }
+    if (!url) { notify('تعذر فتح الملف الآن، حاول مرة أخرى.'); return; }
     if (download) supabase.rpc('bump', { p_item: item.id, p_kind: 'download' });
     window.open(url, '_blank', 'noopener');
   };
@@ -57,7 +58,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
   }, [params.id]);
 
   const toggleFavorite = async () => {
-    if (!user) { alert('يجب تسجيل الدخول أولاً لإضافة المادة للمفضلة'); router.push('/login'); return; }
+    if (!user) { notify('يجب تسجيل الدخول أولاً لإضافة المادة للمفضلة'); router.push('/login'); return; }
     
     if (isFavorite) {
       await supabase.from('favorites').delete().eq('user_id', user.id).eq('item_id', Number(params.id));

@@ -1,5 +1,6 @@
 'use client';
 
+import { notify } from '@/lib/notify';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -42,8 +43,8 @@ export default function ProfilePage() {
     e.preventDefault();
     setSaving(true);
     const { error } = await supabase.from('profiles').upsert({ id: user.id, email: user.email, full_name: profile.full_name, orcid: profile.orcid });
-    if (error) { alert('تعذر الحفظ: ' + error.message); setSaving(false); return; }
-    alert('تم حفظ البيانات بنجاح!');
+    if (error) { notify('تعذر الحفظ: ' + error.message); setSaving(false); return; }
+    notify('تم حفظ البيانات بنجاح!');
     setSaving(false);
   };
 

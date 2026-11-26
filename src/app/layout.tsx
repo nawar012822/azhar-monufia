@@ -1,3 +1,4 @@
+import Toaster from '@/components/Toaster';
 import type { Metadata } from "next";
 import { Cairo, Amiri } from "next/font/google";
 import "./globals.css";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ar" dir="rtl">
       <body className={`${cairo.variable} ${amiri.variable} font-sans min-h-screen flex flex-col`}>
         {children}
+        <Toaster />
         <ResearchAssistantWidget />
       </body>
     </html>

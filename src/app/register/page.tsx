@@ -1,5 +1,6 @@
 'use client';
 
+import { notify } from '@/lib/notify';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -28,7 +29,7 @@ export default function RegisterPage() {
       setErrorMsg('حدث خطأ: ' + error.message);
       setLoading(false);
     } else {
-      alert('تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول.');
+      notify('تم إنشاء الحساب بنجاح! يرجى تسجيل الدخول.');
       router.push('/login');
     }
   };
