@@ -70,6 +70,7 @@ export default function ForgotPasswordPage() {
             <button type="submit" disabled={loading} className="w-full bg-[#1B4D3E] text-white font-bold py-3.5 rounded-xl hover:bg-[#153d31] flex justify-center items-center gap-2">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'إرسال الكود'}
             </button>
+            <button type="button" onClick={() => { if (email.includes('@')) { setErr(''); setStep('code'); } else setErr('اكتب بريدك أولًا.'); }} className="w-full text-sm text-[#1B4D3E] font-bold">عندي كود بالفعل</button>
           </form>
         ) : (
           <form onSubmit={reset} className="space-y-5">
