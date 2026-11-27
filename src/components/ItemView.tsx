@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { ITEM_SELECT, flat, fileLink } from '@/lib/repo';
-import { ArrowRight, Download, Eye, Heart, Calendar, BookOpen } from 'lucide-react';
+import { ArrowRight, Download, Eye, Heart, Calendar, BookOpen, Bookmark } from 'lucide-react';
+import CiteBox from '@/components/CiteBox';
+import { addRecent, inReading, toggleReading } from '@/lib/local-library';
 
 export default function ItemView({ initialItem, id }: { initialItem: any | null; id: string }) {
   const params = { id };
@@ -18,6 +20,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
   const [authChecked, setAuthChecked] = useState(false);
   const [file, setFile] = useState<{ bucket: string; file_key: string } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState(false);
 
   const openFile = async (download: boolean) => {
     if (!file) return;
@@ -52,6 +55,8 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
         const { data: favData } = await supabase.from('favorites').select('item_id').eq('user_id', user.id).eq('item_id', params.id).maybeSingle();
         if (favData) setIsFavorite(true);
       }
+      if (current && current.status === 'approved') addRecent({ id: current.id, title: current.title, author: current.author });
+      setReading(inReading(params.id));
       setLoading(false);
     }
     loadData();
@@ -69,6 +74,8 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
     }
   };
 
+  const onReading = () => { const on = toggleReading({ id: item.id, title: item.title, author: item.author }); setReading(on); notify(on ? 'أضيفت لقائمة القراءة على هذا الجهاز' : 'أزيلت من قائمة القراءة'); };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
   if (!item) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0] text-xl">المادة غير موجودة.</div>;
 
@@ -76,12 +83,18 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
     <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <div className="max-w-4xl mx-auto">
         
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-wrap gap-3 justify-between items-center mb-8">
           <Link href={item.dept_path ? `/browse/${item.dept_path}` : '/'} className="flex items-center gap-2 text-gray-600 hover:text-[#1B4D3E] bg-white px-4 py-2 rounded-lg border"><ArrowRight className="w-4 h-4"/> العودة للقسم</Link>
+          <div className="flex flex-wrap gap-2">
+          <button onClick={onReading} aria-pressed={reading} className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition ${reading ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-white hover:bg-gray-50'}`}>
+            <Bookmark className={`w-5 h-5 ${reading ? 'fill-amber-600' : ''}`} />
+            {reading ? 'في قائمة القراءة' : 'للقراءة لاحقًا'}
+          </button>
           <button onClick={toggleFavorite} className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition ${isFavorite ? 'bg-red-50 border-red-200 text-red-600' : 'bg-white hover:bg-gray-50'}`}>
             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-600' : ''}`} />
             {isFavorite ? 'في المفضلة' : 'إضافة للمفضلة'}
           </button>
+          </div>
         </div>
 
         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-200">
@@ -108,12 +121,14 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
             <div className="mb-8">
               <h3 className="font-bold mb-2">الكلمات المفتاحية:</h3>
               <div className="flex flex-wrap gap-2">
-                {item.keywords.split(',').map((kw: string, i: number) => (
+                {item.keywords.split(/[,،]/).map((kw: string, i: number) => (
                   <span key={i} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-sm">{kw.trim()}</span>
                 ))}
               </div>
             </div>
           )}
+
+          <CiteBox item={{ id: item.id, title: item.title, author: item.author, date_issued: item.date_issued, publisher: item.publisher, language: item.language }} />
 
           <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 mt-8">
             <div className="text-sm text-gray-500">

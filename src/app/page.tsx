@@ -103,6 +103,7 @@ export default function Home() {
           <div className="absolute w-full bg-[#F8F6F0] border-b border-gray-200 shadow-xl flex flex-col text-right z-50">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">الرئيسية</Link>
             <Link href="/search" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">البحث المتقدم</Link>
+            <Link href="/my-library" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">مكتبتي</Link>
             <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">عن المستودع</Link>
             <Link href="/policies" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">سياسة الاستخدام</Link>
             <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className="p-5 border-b border-gray-200/50 font-bold text-gray-800 hover:bg-white transition">اتصل بنا</Link>
