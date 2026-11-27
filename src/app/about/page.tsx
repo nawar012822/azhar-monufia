@@ -1,14 +1,14 @@
 import Link from 'next/link';
 
 const STAGES = [
-  { num: '١', title: 'دراسة المتطلبات وتصميم شكل المستودع', status: 'جارٍ', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٢', title: 'نموذج تجريبي مجاني يعمل على الإنترنت', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٣', title: 'قاعدة بيانات المواد العلمية', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٤', title: 'نظام البحث والفهرسة', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٥', title: 'لوحة تحكم إدارة المحتوى والصلاحيات', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٦', title: 'التجربة وإصلاح الأخطاء', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٧', title: 'العرض على إدارة الكلية', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
-  { num: '٨', title: 'التحول إلى مستودع رسمي (DSpace) أو الأنسب', status: 'قادم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '١', title: 'دراسة المتطلبات وتصميم شكل المستودع', status: 'تم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '٢', title: 'نموذج تجريبي مجاني يعمل على الإنترنت', status: 'تم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '٣', title: 'قاعدة بيانات المواد العلمية: كتب ورسائل وأبحاث ومخطوطات ودوريات ومحاضرات، من مصادر مفتوحة الترخيص أو ملك عام', status: 'تم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '٤', title: 'نظام البحث والفهرسة: بحث عربي يتجاوز اختلاف الهمزة والتاء المربوطة والتشكيل، وفلاتر اللغة والسنة والترخيص، وبيانات جوجل سكولار، وبروتوكول OAI-PMH لتبادل البيانات مع المستودعات', status: 'تم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '٥', title: 'لوحة تحكم إدارة المحتوى والصلاحيات: مدير عام ومدير كلية ومدير قسم، وشجرة الجامعة والكلية والقسم', status: 'تم', color: 'bg-[#1B4D3E] text-white' },
+  { num: '٦', title: 'التجربة وإصلاح الأخطاء', status: 'جارٍ', color: 'bg-[#b59555] text-white' },
+  { num: '٧', title: 'العرض على إدارة الكلية', status: 'قادم', color: 'bg-gray-200 text-gray-600' },
+  { num: '٨', title: 'التحول إلى مستودع رسمي (DSpace) أو الأنسب', status: 'قادم', color: 'bg-gray-200 text-gray-600' },
 ];
 
 export default function AboutPage() {
@@ -34,12 +34,12 @@ export default function AboutPage() {
           {STAGES.map((stage) => (
             <div key={stage.num} className="bg-white p-5 rounded-xl border border-gray-200 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${stage.color}`}>
+                <div className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center font-bold text-lg ${stage.color}`}>
                   {stage.num}
                 </div>
                 <h3 className="font-bold text-[#1B4D3E]">{stage.title}</h3>
               </div>
-              <span className="text-gray-400 text-sm">{stage.status}</span>
+              <span className={`text-sm font-bold shrink-0 mr-3 ${stage.status === 'تم' ? 'text-[#1B4D3E]' : stage.status === 'جارٍ' ? 'text-[#b59555]' : 'text-gray-400'}`}>{stage.status}</span>
             </div>
           ))}
         </div>
