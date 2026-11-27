@@ -45,6 +45,23 @@ export async function GET(request: Request) {
   const sb = serverClient();
   const known = ['Identify', 'ListMetadataFormats', 'ListSets', 'ListIdentifiers', 'ListRecords', 'GetRecord'];
   if (!verb || !known.includes(verb)) return wrap(url, verb, '', ['badVerb', 'Illegal or missing verb']);
+  if (q.getAll('verb').length > 1) return wrap(url, null, '', ['badVerb', 'Repeated verb']);
+  // Argument rules from OAI-PMH 2.0 section 3: illegal, repeated, missing and exclusive arguments are badArgument.
+  const rules: Record<string, { req: string[]; opt: string[] }> = {
+    Identify: { req: [], opt: [] },
+    ListMetadataFormats: { req: [], opt: ['identifier'] },
+    ListSets: { req: [], opt: ['resumptionToken'] },
+    GetRecord: { req: ['identifier', 'metadataPrefix'], opt: [] },
+    ListIdentifiers: { req: ['metadataPrefix'], opt: ['from', 'until', 'set', 'resumptionToken'] },
+    ListRecords: { req: ['metadataPrefix'], opt: ['from', 'until', 'set', 'resumptionToken'] },
+  };
+  {
+    const r = rules[verb]; const keys = Array.from(new Set(Array.from(q.keys()).filter(k => k !== 'verb')));
+    const bad = (m: string) => wrap(url, verb, '', ['badArgument', m]);
+    for (const k of keys) { if (!r.req.includes(k) && !r.opt.includes(k)) return bad(`Illegal argument: ${k}`); if (q.getAll(k).length > 1) return bad(`Repeated argument: ${k}`); }
+    if (q.has('resumptionToken')) { if (keys.length > 1) return bad('resumptionToken is an exclusive argument'); }
+    else for (const k of r.req) if (!q.get(k)) return bad(`Missing required argument: ${k}`);
+  }
 
   if (verb === 'Identify') {
     const { data } = await sb.from('items').select('created_at,updated_at').eq('status', 'approved').order('updated_at').limit(1);
