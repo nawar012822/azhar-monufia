@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import ItemCard from '@/components/ItemCard';
 import { useSearchParams } from 'next/navigation';
 import { Search, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -56,7 +57,7 @@ function SearchContent() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-[#1B4D3E] font-serif">البحث المتقدم</h1>
         <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-[#1B4D3E] bg-white px-4 py-2 rounded-lg border"><ArrowRight className="w-4 h-4"/> الرئيسية</Link>
@@ -93,14 +94,10 @@ function SearchContent() {
       ) : searched && (
         <div>
           <h2 className="text-xl font-bold mb-4">النتائج ({results.length})</h2>
-          <div className="space-y-4">
-            {results.map(item => (
-              <Link href={`/item/${item.id}`} key={item.id} className="block bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition">
-                <h3 className="text-xl font-bold text-[#1B4D3E] mb-1 font-serif">{item.title}</h3>
-                <p className="text-gray-600 text-sm mb-3">د. {item.author} • {item.collection}</p>
-                <p className="text-gray-500 text-sm line-clamp-2">{item.abstract}</p>
-              </Link>
-            ))}
+          <div className="grid md:grid-cols-2 gap-4 md:gap-5">
+            {results.map(item => <ItemCard key={item.id} item={item} />)}
+          </div>
+          <div className="space-y-4 mt-4">
             {error && <p className="text-red-600 bg-white p-8 rounded-xl border text-center">تعذر تنفيذ البحث الآن، حاول مرة أخرى.</p>}
             {!error && results.length === 0 && <p className="text-gray-500 bg-white p-8 rounded-xl border text-center">لا توجد نتائج مطابقة.</p>}
           </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import ItemCard from '@/components/ItemCard';
 import { ArrowRight, BookOpen, User, Eye, Search, Folder } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { flat, ITEM_SELECT } from '@/lib/repo';
@@ -61,7 +62,7 @@ export default function BrowsePage() {
 
   return (
     <main className="min-h-screen bg-[#F8F6F0] py-10 px-4" dir="rtl">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <nav className="text-sm text-gray-500 mb-4 flex flex-wrap gap-2 items-center">
           <Link href="/" className="hover:text-[#1B4D3E]">الرئيسية</Link>
           {crumbs.map((c, i) => (
@@ -69,12 +70,12 @@ export default function BrowsePage() {
           ))}
         </nav>
 
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-center mb-8 bg-gradient-to-l from-[#0C422E] to-[#1B4D3E] text-white p-6 md:p-8 rounded-3xl shadow-md gap-4">
           <div>
-            <p className="text-sm text-[#b59555] font-bold">{org ? KIND_AR[org.kind] : ''}</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#1B4D3E] font-serif">{org?.name_ar || 'جاري التحميل...'}</h1>
+            <p className="text-sm text-[#D4AF37] font-bold mb-1">{org ? KIND_AR[org.kind] : ''}</p>
+            <h1 className="text-2xl md:text-4xl font-bold text-white font-serif">{org?.name_ar || 'جاري التحميل...'}</h1>
           </div>
-          <Link href="/" className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-[#1B4D3E] bg-gray-50 px-5 py-2.5 rounded-xl border"><ArrowRight className="w-4 h-4" /> الرئيسية</Link>
+          <Link href="/" className="flex items-center gap-2 text-sm font-bold text-white/90 hover:text-white bg-white/10 px-5 py-2.5 rounded-xl border border-white/20 self-start"><ArrowRight className="w-4 h-4" /> الرئيسية</Link>
         </div>
 
         {children.length > 0 && (
@@ -111,21 +112,8 @@ export default function BrowsePage() {
             <p className="text-lg text-gray-500 font-bold">لا توجد مواد هنا حتى الآن.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {items.map(item => (
-              <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col justify-between hover:shadow-md transition">
-                <div>
-                  <h2 className="text-xl font-bold text-[#1B4D3E] mb-2 font-serif">{item.title}</h2>
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-2"><User className="w-4 h-4 text-[#D4AF37]" /> {item.author || 'غير محدد'}</p>
-                  <p className="text-xs text-gray-400 mb-3">{item.collection} • {item.department}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed line-clamp-3">{item.abstract || 'لا يوجد مستخلص'}</p>
-                </div>
-                <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                  <span className="flex items-center gap-1 text-gray-400 text-xs"><Eye className="w-3 h-3" /> {item.views}</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${item.access === 'open' ? 'bg-green-50 text-green-700' : 'bg-orange-50 text-orange-700'}`}>{item.access === 'open' ? 'متاح مفتوح' : item.access === 'restricted' ? 'مقيد' : 'بيانات فقط'}</span>
-                </div>
-              </Link>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {items.map(item => <ItemCard key={item.id} item={item} />)}
           </div>
         )}
       </div>

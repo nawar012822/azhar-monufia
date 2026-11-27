@@ -4,6 +4,8 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { Cairo, Amiri } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/constants";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import LazyAssistant from "@/components/LazyAssistant";
 
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
@@ -37,7 +39,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ar" dir="rtl">
       <body className={`${cairo.variable} ${amiri.variable} font-sans min-h-screen flex flex-col`}>
-        {children}
+        <SiteHeader />
+        <div className="flex-1 flex flex-col">{children}</div>
+        <SiteFooter />
         <Toaster />
         <LazyAssistant />
         <ServiceWorkerRegister />

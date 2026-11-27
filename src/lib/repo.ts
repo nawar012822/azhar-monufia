@@ -2,7 +2,7 @@ import { SUPABASE_URL } from './supabase';
 
 // What list pages and item pages select. Embeds: collection, org (department), counters.
 export const ITEM_SELECT =
-  'id,created_at,title,author,abstract,keywords,language,access,status,date_issued,publisher,rights,metadata,org_id,collection_id,' +
+  'id,created_at,title,author,abstract,keywords,language,pages,access,status,date_issued,publisher,rights,metadata,org_id,collection_id,' +
   'collections(slug,name_ar,icon),orgs(name_ar,path),item_stats(views,downloads)';
 
 export type Role = 'uploader' | 'moderator' | 'admin';
