@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import Captcha, { CAPTCHA_SITE_KEY } from '@/components/Captcha';
 import { Mail, Lock, Eye, EyeOff, User, Loader2 } from 'lucide-react';
 
 function friendly(e: { message: string; status?: number; code?: string }) {
@@ -24,18 +25,22 @@ export default function RegisterPage() {
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [code, setCode] = useState('');
   const [cool, setCool] = useState(0);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [ck, setCk] = useState(0);
   useEffect(() => { if (cool <= 0) return; const t = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(t); }, [cool]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (CAPTCHA_SITE_KEY && !captcha) { setErrorMsg('أكمل اختبار التحقق أولا.'); return; }
     setLoading(true);
     setErrorMsg('');
 
     const { data, error } = await supabase.auth.signUp({
       email: form.email.trim(),
       password: form.password,
-      options: { data: { full_name: form.fullName } }
+      options: { data: { full_name: form.fullName }, ...(captcha ? { captchaToken: captcha } : {}) }
     });
+    setCk(k => k + 1);
 
     if (error) {
       setErrorMsg(friendly(error));
@@ -63,7 +68,9 @@ export default function RegisterPage() {
   const resend = async () => {
     if (cool > 0) return;
     setErrorMsg('');
-    const { error } = await supabase.auth.resend({ type: 'signup', email: form.email.trim() });
+    if (CAPTCHA_SITE_KEY && !captcha) { setErrorMsg('أكمل اختبار التحقق أولا.'); return; }
+    const { error } = await supabase.auth.resend({ type: 'signup', email: form.email.trim(), options: captcha ? { captchaToken: captcha } : undefined });
+    setCk(k => k + 1);
     if (error) { setErrorMsg(friendly(error)); return; }
     setCool(60); notify('أرسلنا كودًا جديدًا إلى بريدك');
   };
@@ -81,6 +88,7 @@ export default function RegisterPage() {
           <p className="text-muted-foreground text-sm">انضم إلى المستودع الرقمي للكلية</p>
         </div>
 
+        <Captcha onToken={setCaptcha} resetKey={ck} />
         {step === 'code' ? (
           <form onSubmit={verify} className="space-y-5">
             <p className="text-sm text-center text-gray-600">أرسلنا كودًا إلى <b dir="ltr">{form.email}</b>. اكتبه هنا لتأكيد أن البريد بريدك.</p>

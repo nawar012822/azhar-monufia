@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import Captcha, { CAPTCHA_SITE_KEY } from '@/components/Captcha';
 import { notify } from '@/lib/notify';
 
 function friendly(e: { message: string; status?: number }) {
@@ -24,13 +25,17 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
   const [cool, setCool] = useState(0);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [ck, setCk] = useState(0);
   useEffect(() => { if (cool <= 0) return; const t = setTimeout(() => setCool(cool - 1), 1000); return () => clearTimeout(t); }, [cool]);
 
   const send = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (cool > 0) return;
+    if (CAPTCHA_SITE_KEY && !captcha) { setErr('أكمل اختبار التحقق أولا.'); return; }
     setLoading(true); setErr('');
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), captcha ? { captchaToken: captcha } : undefined);
+    setCk(k => k + 1);
     setLoading(false);
     if (error) { setErr(friendly(error)); return; }
     // The same answer is shown whether or not the email exists (no account probing).
@@ -60,6 +65,7 @@ export default function ForgotPasswordPage() {
           <p className="text-muted-foreground text-sm">{step === 'email' ? 'اكتب بريدك وهنبعتلك كود تأكيد' : 'اكتب الكود اللي وصلك على بريدك وكلمة المرور الجديدة'}</p>
         </div>
 
+        <Captcha onToken={setCaptcha} resetKey={ck} />
         {step === 'email' ? (
           <form onSubmit={send} className="space-y-5">
             <div className="relative">

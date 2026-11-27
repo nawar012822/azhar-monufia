@@ -4,24 +4,30 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import Captcha, { CAPTCHA_SITE_KEY } from '@/components/Captcha';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
+  const [ck, setCk] = useState(0);
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (CAPTCHA_SITE_KEY && !captcha) { setErrorMsg('أكمل اختبار التحقق أولا.'); return; }
     setLoading(true);
     setErrorMsg('');
 
     const { error } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.password,
+      options: captcha ? { captchaToken: captcha } : undefined,
     });
+    if (error) setCk(k => k + 1);
 
     if (error) {
       {
@@ -78,6 +84,7 @@ export default function LoginPage() {
 
           {errorMsg && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl text-center font-bold">{errorMsg}</p>}
 
+          <Captcha onToken={setCaptcha} resetKey={ck} />
           <button type="submit" disabled={loading} className="w-full bg-[#1B4D3E] text-white font-bold py-3.5 rounded-xl hover:bg-[#153d31] transition-all shadow-lg flex justify-center items-center gap-2">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'دخول'}
           </button>
