@@ -31,3 +31,7 @@
   }
   h1, h2, h3, h4, h5, h6 { @apply font-serif; }
 }
+@keyframes fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.fade-up { animation: fade-up .45s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .fade-up { animation: none; } html { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }

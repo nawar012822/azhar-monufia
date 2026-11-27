@@ -11,7 +11,7 @@ export default function ItemCard({ item, showAuthorPrefix = false }: { item: any
   const [accessLabel, accessCls] = ACCESS[item.access] || ACCESS.open;
   const lang = item.language && item.language !== 'العربية' ? item.language : null;
   return (
-    <Link href={`/item/${item.id}`} className="group relative flex flex-col bg-white rounded-2xl border border-gray-200/80 p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-[#1B4D3E]/30 transition duration-200">
+    <Link href={`/item/${item.id}`} className="fade-up group relative flex flex-col bg-white rounded-2xl border border-gray-200/80 p-5 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-[#1B4D3E]/30 transition duration-200">
       <span aria-hidden className="absolute top-0 right-6 left-6 h-1 rounded-b-full bg-gradient-to-l from-[#D4AF37] to-[#1B4D3E] opacity-0 group-hover:opacity-100 transition" />
       <div className="flex items-center gap-2 text-xs text-gray-500 mb-3 flex-wrap">
         <span className="text-base leading-none">{item.collection_icon}</span>

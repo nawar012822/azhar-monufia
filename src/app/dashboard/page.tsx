@@ -121,6 +121,14 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-6 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {([['بانتظار المراجعة', items.filter(i => i.status === 'pending').length, 'text-amber-600'], ['منشورة', published, 'text-emerald-700'], ['كل المواد', total, 'text-[#1B4D3E]'], ['المشاهدات', views, 'text-sky-700']] as [string, number, string][]).map(([l, n, c]) => (
+            <div key={l} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 text-center fade-up">
+              <span className={`block text-2xl md:text-3xl font-bold font-serif ${c}`}>{n.toLocaleString('ar-EG')}</span>
+              <span className="text-xs md:text-sm text-gray-500 font-bold">{l}</span>
+            </div>
+          ))}
+        </div>
         <div className="bg-white/95 backdrop-blur p-2 rounded-2xl shadow-md border flex gap-2 mb-6 overflow-x-auto sticky top-[72px] z-30">
           {tabs.map(([k, t]) => (
             <button key={k} onClick={() => { setTab(k); setQ(''); }} className={`flex-1 min-w-[110px] py-3 rounded-xl font-bold text-sm transition ${tab === k ? 'bg-[#F8F6F0] shadow-inner text-[#1B4D3E]' : 'text-gray-500 hover:bg-gray-50'}`}>{t}</button>

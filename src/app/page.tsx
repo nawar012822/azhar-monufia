@@ -68,7 +68,7 @@ export default function Home() {
   const chips = ['البلاغة', 'النحو', 'المكتبات', 'information literacy'];
 
   return (
-    <main className="flex-1" dir="rtl">
+    <main className="flex-1 pb-16" dir="rtl">
       <section className="relative bg-gradient-to-b from-[#0C422E] to-[#14573f] text-white overflow-hidden" style={{ backgroundImage: 'radial-gradient(circle at 20% 20%, rgba(212,175,55,0.14), transparent 40%), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.07), transparent 40%), linear-gradient(to bottom, #0C422E, #14573f)' }}>
         <div className="max-w-3xl mx-auto px-4 pt-14 pb-24 text-center">
           <p className="inline-block text-[#D4AF37] text-sm md:text-base font-bold bg-white/10 border border-white/15 rounded-full px-4 py-1.5 mb-6">جامعة الأزهر - كلية اللغة العربية بالمنوفية</p>

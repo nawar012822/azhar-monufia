@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function SiteFooter() {
   return (
-    <footer className="bg-[#0C422E] text-white mt-16">
+    <footer className="bg-[#0C422E] text-white">
       <div className="max-w-6xl mx-auto px-4 py-12 grid gap-8 md:grid-cols-3 text-sm">
         <div className="md:col-span-1">
           <h3 className="text-xl font-bold font-serif mb-2">المستودع الرقمي</h3>
