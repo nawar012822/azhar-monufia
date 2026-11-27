@@ -55,8 +55,8 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
         const { data: favData } = await supabase.from('favorites').select('item_id').eq('user_id', user.id).eq('item_id', params.id).maybeSingle();
         if (favData) setIsFavorite(true);
       }
-      if (current && current.status === 'approved') addRecent({ id: current.id, title: current.title, author: current.author });
-      setReading(inReading(params.id));
+      if (current && current.status === 'approved') await addRecent({ id: current.id, title: current.title, author: current.author });
+      setReading(await inReading(params.id));
       setLoading(false);
     }
     loadData();
@@ -74,7 +74,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
     }
   };
 
-  const onReading = () => { const on = toggleReading({ id: item.id, title: item.title, author: item.author }); setReading(on); notify(on ? 'أضيفت لقائمة القراءة على هذا الجهاز' : 'أزيلت من قائمة القراءة'); };
+  const onReading = async () => { const on = await toggleReading({ id: item.id, title: item.title, author: item.author }); setReading(on); notify(on ? 'أضيفت لقائمة القراءة على هذا الجهاز' : 'أزيلت من قائمة القراءة'); };
 
   if (loading) return <div className="flex-1 flex items-center justify-center bg-[#F8F6F0] py-24"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
   if (!item) return <div className="flex-1 flex items-center justify-center bg-[#F8F6F0] text-xl py-24">المادة غير موجودة.</div>;

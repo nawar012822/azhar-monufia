@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, Search, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { loadAccess, Access } from '@/lib/repo';
+import { mergeLocalIntoAccount } from '@/lib/local-library';
 
 const LINKS: [string, string][] = [['/', 'الرئيسية'], ['/search', 'البحث'], ['/my-library', 'مكتبتي'], ['/about', 'عن المستودع'], ['/contact', 'اتصل بنا']];
 
@@ -16,10 +17,10 @@ export default function SiteHeader() {
   const [access, setAccess] = useState<Access | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => { setUser(user); if (user) loadAccess(supabase).then(setAccess); });
+    supabase.auth.getUser().then(({ data: { user } }) => { setUser(user); if (user) { loadAccess(supabase).then(setAccess); mergeLocalIntoAccount(user.id); } });
     const { data } = supabase.auth.onAuthStateChange((_e, s) => {
       setUser(s?.user ?? null);
-      if (!s) setAccess(null); else loadAccess(supabase).then(setAccess);
+      if (!s) setAccess(null); else { loadAccess(supabase).then(setAccess); if (_e === 'SIGNED_IN') mergeLocalIntoAccount(s.user.id); }
     });
     return () => data.subscription.unsubscribe();
   }, []);

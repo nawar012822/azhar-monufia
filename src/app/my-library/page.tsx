@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Bookmark, Clock, Heart, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { clearRecent, getReading, getRecent, toggleReading, Mini } from '@/lib/local-library';
+import { clearRecent, getReading, getRecent, removeReading, Mini } from '@/lib/local-library';
 
 function List({ items, onRemove }: { items: Mini[]; onRemove?: (m: Mini) => void }) {
   return (
@@ -28,7 +28,7 @@ export default function MyLibraryPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    setReading(getReading()); setRecent(getRecent());
+    getReading().then(setReading); getRecent().then(setRecent);
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (!user) return;
@@ -49,14 +49,14 @@ export default function MyLibraryPage() {
 
         <section>
           <h2 className="flex items-center gap-2 text-xl font-bold mb-3"><Bookmark className="w-5 h-5 text-amber-600" /> قائمة القراءة</h2>
-          <p className="text-xs text-gray-500 mb-3">محفوظة على هذا الجهاز فقط.</p>
-          {reading.length ? <List items={reading} onRemove={m => { toggleReading(m); setReading(getReading()); }} /> : <Empty t="لم تضف شيئًا بعد. اضغط «للقراءة لاحقًا» في أي مادة." />}
+          <p className="text-xs text-gray-500 mb-3">{user ? 'محفوظة على حسابك وتظهر على أي جهاز.' : 'محفوظة على هذا الجهاز فقط. سجّل الدخول لتظهر على أي جهاز.'}</p>
+          {reading.length ? <List items={reading} onRemove={async m => { await removeReading(m.id); setReading(await getReading()); }} /> : <Empty t="لم تضف شيئًا بعد. اضغط «للقراءة لاحقًا» في أي مادة." />}
         </section>
 
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="flex items-center gap-2 text-xl font-bold"><Clock className="w-5 h-5 text-gray-500" /> شاهدتها مؤخرًا</h2>
-            {recent.length > 0 && <button onClick={() => { clearRecent(); setRecent([]); }} className="text-sm text-gray-500 underline p-2">مسح السجل</button>}
+            {recent.length > 0 && <button onClick={async () => { await clearRecent(); setRecent([]); }} className="text-sm text-gray-500 underline p-2">مسح السجل</button>}
           </div>
           {recent.length ? <List items={recent} /> : <Empty t="لا يوجد سجل بعد." />}
         </section>
