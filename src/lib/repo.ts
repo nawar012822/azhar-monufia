@@ -63,6 +63,13 @@ export function publicFileUrl(bucket: string, key: string) {
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
 }
 export async function fileLink(sb: any, f: { bucket: string; file_key: string }, download = false): Promise<string | null> {
+  if (f.bucket === 'r2') {
+    const { data: sess } = await sb.auth.getSession();
+    const tok = sess?.session?.access_token;
+    const res = await fetch('/api/file-url', { method: 'POST', headers: { 'content-type': 'application/json', ...(tok ? { Authorization: `Bearer ${tok}` } : {}) }, body: JSON.stringify({ file_key: f.file_key, download, name: 'document.pdf' }) });
+    if (!res.ok) return null;
+    return (await res.json()).url || null;
+  }
   if (f.bucket === 'books') return publicFileUrl('books', f.file_key) + (download ? '?download' : '');
   const { data, error } = await sb.storage.from(f.bucket).createSignedUrl(f.file_key, 3600, download ? { download: true } : undefined);
   return error ? null : data?.signedUrl || null;
