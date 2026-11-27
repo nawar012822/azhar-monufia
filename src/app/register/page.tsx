@@ -123,12 +123,12 @@ export default function RegisterPage() {
           <button type="submit" disabled={loading} className="w-full bg-[#1B4D3E] text-white font-bold py-3.5 rounded-xl hover:bg-[#153d31] transition-all shadow-lg flex justify-center items-center gap-2 mt-2">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تسجيل حساب'}
           </button>
-          <button type="button" onClick={() => { if (form.email.includes('@')) { setErrorMsg(''); setStep('code'); } else setErrorMsg('اكتب بريدك أولًا.'); }} className="w-full text-sm text-[#1B4D3E] font-bold">عندي كود تأكيد بالفعل</button>
+          <button type="button" onClick={() => { if (form.email.includes('@')) { setErrorMsg(''); setStep('code'); } else setErrorMsg('اكتب بريدك أولًا.'); }} className="w-full py-3 text-sm text-[#1B4D3E] font-bold">عندي كود تأكيد بالفعل</button>
         </form>
         )}
 
         <p className="text-center mt-6 text-sm text-muted-foreground font-medium">
-          لديك حساب بالفعل؟ <Link href="/login" className="text-[#1B4D3E] font-bold hover:underline">تسجيل الدخول</Link>
+          لديك حساب بالفعل؟ <Link href="/login" className="text-[#1B4D3E] font-bold hover:underline inline-block py-2">تسجيل الدخول</Link>
         </p>
       </div>
     </main>

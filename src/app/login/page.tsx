@@ -74,7 +74,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="text-left -mt-2"><Link href="/forgot-password" className="text-sm text-[#1B4D3E] font-bold hover:underline">نسيت كلمة المرور؟</Link></div>
+          <div className="text-left -mt-2"><Link href="/forgot-password" className="text-sm text-[#1B4D3E] font-bold hover:underline inline-block py-2">نسيت كلمة المرور؟</Link></div>
 
           {errorMsg && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl text-center font-bold">{errorMsg}</p>}
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center mt-8 text-sm text-muted-foreground font-medium">
-          لا تملك حساباً؟ <Link href="/register" className="text-[#1B4D3E] font-bold hover:underline">إنشاء حساب جديد</Link>
+          لا تملك حساباً؟ <Link href="/register" className="text-[#1B4D3E] font-bold hover:underline inline-block py-2">إنشاء حساب جديد</Link>
         </p>
       </div>
     </main>

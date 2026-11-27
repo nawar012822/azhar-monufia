@@ -137,11 +137,11 @@ export default function Home() {
         <div className="space-y-5">
           {orgs.filter(o => o.kind === 'faculty').map(f => (
             <div key={f.id} className="bg-white border border-gray-200 rounded-2xl p-5 md:p-6">
-              <Link href={`/browse/${f.path}`} className="inline-flex items-center gap-2 text-lg md:text-xl font-bold text-[#1B4D3E] hover:underline font-serif">{f.name_ar} <ArrowLeft className="w-4 h-4" /></Link>
+              <Link href={`/browse/${f.path}`} className="inline-flex items-center gap-2 text-lg md:text-xl font-bold text-[#1B4D3E] hover:underline font-serif py-2">{f.name_ar} <ArrowLeft className="w-4 h-4" /></Link>
               <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {orgs.filter(d => d.parent_id === f.id && !d.path.endsWith('/unclassified')).map(d => (
                   <div key={d.id} className="rounded-xl border border-gray-200 bg-[#FAF8F2] p-4">
-                    <Link href={`/browse/${d.path}`} className="flex items-center gap-2 font-bold text-gray-900 hover:text-[#1B4D3E]"><Folder className="w-4 h-4 text-[#D4AF37]" />{d.name_ar}</Link>
+                    <Link href={`/browse/${d.path}`} className="flex items-center gap-2 font-bold text-gray-900 hover:text-[#1B4D3E] py-2"><Folder className="w-4 h-4 text-[#D4AF37]" />{d.name_ar}</Link>
                     {orgs.filter(x => x.parent_id === d.id).length > 0 && (
                       <div className="mt-1 flex flex-wrap gap-x-3 text-sm">
                         {orgs.filter(x => x.parent_id === d.id).map(x => (

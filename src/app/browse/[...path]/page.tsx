@@ -64,9 +64,9 @@ export default function BrowsePage() {
     <main className="flex-1 bg-[#F8F6F0] py-10 px-4" dir="rtl">
       <div className="max-w-6xl mx-auto">
         <nav className="text-sm text-gray-500 mb-4 flex flex-wrap gap-2 items-center">
-          <Link href="/" className="hover:text-[#1B4D3E]">الرئيسية</Link>
+          <Link href="/" className="hover:text-[#1B4D3E] py-2 inline-block">الرئيسية</Link>
           {crumbs.map((c, i) => (
-            <span key={c.id} className="flex items-center gap-2">/ {i === crumbs.length - 1 ? <b className="text-[#1B4D3E]">{c.name_ar}</b> : <Link href={`/browse/${c.path}`} className="hover:text-[#1B4D3E]">{c.name_ar}</Link>}</span>
+            <span key={c.id} className="flex items-center gap-2">/ {i === crumbs.length - 1 ? <b className="text-[#1B4D3E]">{c.name_ar}</b> : <Link href={`/browse/${c.path}`} className="hover:text-[#1B4D3E] py-2 inline-block">{c.name_ar}</Link>}</span>
           ))}
         </nav>
 
@@ -97,9 +97,9 @@ export default function BrowsePage() {
             <input value={q} onChange={e => setQ(e.target.value)} placeholder="ابحث داخل هذا القسم..." className="w-full py-3 pr-12 pl-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]" />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setColl(null)} className={`px-3 py-1 rounded-full text-sm border ${coll === null ? 'bg-[#1B4D3E] text-white' : 'bg-white'}`}>الكل</button>
+            <button onClick={() => setColl(null)} className={`px-4 py-2 rounded-full text-sm border ${coll === null ? 'bg-[#1B4D3E] text-white' : 'bg-white'}`}>الكل</button>
             {colls.map(c => (
-              <button key={c.id} onClick={() => setColl(c.id)} className={`px-3 py-1 rounded-full text-sm border ${coll === c.id ? 'bg-[#1B4D3E] text-white' : 'bg-white'}`}>{c.icon} {c.name_ar}</button>
+              <button key={c.id} onClick={() => setColl(c.id)} className={`px-4 py-2 rounded-full text-sm border ${coll === c.id ? 'bg-[#1B4D3E] text-white' : 'bg-white'}`}>{c.icon} {c.name_ar}</button>
             ))}
           </div>
         </div>

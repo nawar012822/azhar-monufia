@@ -135,7 +135,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
               <p>جهة النشر: {item.publisher}</p>
               <p className="mt-1">حقوق الاستخدام: {item.rights}</p>
               {typeof item.metadata?.source_page === 'string' && /^https?:\/\//.test(item.metadata.source_page) && (
-                <p className="mt-1">المصدر الأصلي: <a href={item.metadata.source_page} target="_blank" rel="noopener noreferrer" className="text-[#1B4D3E] underline">صفحة الكتاب الأصلية</a>{item.metadata.license_evidence ? ` (${item.metadata.license_evidence})` : ''}</p>
+                <p className="mt-1">المصدر الأصلي: <a href={item.metadata.source_page} target="_blank" rel="noopener noreferrer" className="text-[#1B4D3E] underline inline-block py-2">صفحة الكتاب الأصلية</a>{item.metadata.license_evidence ? ` (${item.metadata.license_evidence})` : ''}</p>
               )}
             </div>
             

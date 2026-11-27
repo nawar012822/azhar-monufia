@@ -27,7 +27,7 @@ export default function CiteBox({ item }: { item: CiteItem }) {
 
   return (
     <div className="mt-8">
-      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-2 text-[#1B4D3E] font-bold">
+      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-2 text-[#1B4D3E] font-bold py-3">
         <Quote className="w-4 h-4" /> اقتباس هذه المادة
       </button>
       {open && (
