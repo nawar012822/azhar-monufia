@@ -14,4 +14,5 @@ export const COLLECTIONS = [
   { slug: 'student-projects', name: 'مشروعات الطلاب', icon: '📝' },
   { slug: 'periodicals', name: 'الدوريات والمجلات', icon: '📰' },
   { slug: 'lectures', name: 'المحاضرات والمواد التعليمية', icon: '🎧' },
+  { slug: 'bibliographies', name: 'الببليوغرافيات', icon: '📖' },
 ];

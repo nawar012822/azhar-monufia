@@ -6,7 +6,13 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sb = serverClient();
-  const { data } = await sb.from('items').select('id,created_at').eq('status', 'approved').limit(5000);
+  const data: any[] = [];
+  for (let from = 0; from < 50000; from += 1000) {
+    const { data: page } = await sb.from('items').select('id,created_at').eq('status', 'approved').order('id').range(from, from + 999);
+    if (!page || !page.length) break;
+    data.push(...page);
+    if (page.length < 1000) break;
+  }
 
   const fixed = ['', '/search', '/about', '/contact', '/policies', '/my-library'].map((p) => ({ url: `${SITE_URL}${p}` }));
   const cols = COLLECTIONS.map((c) => ({ url: `${SITE_URL}/collections/${c.slug}` }));

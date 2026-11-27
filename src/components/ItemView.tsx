@@ -112,6 +112,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
             <span className="flex items-center gap-1"><BookOpen className="w-4 h-4"/> {item.author}</span>
             {item.date_issued && <span className="flex items-center gap-1"><Calendar className="w-4 h-4"/> {item.date_issued}</span>}
             <span className="flex items-center gap-1"><Eye className="w-4 h-4"/> {item.views || 0} مشاهدة</span>
+            {(item.downloads || 0) > 0 && <span className="flex items-center gap-1"><Download className="w-4 h-4"/> {item.downloads} تحميل</span>}
           </div>
 
           <h2 className="text-xl font-bold text-[#1B4D3E] mb-4 font-serif">المستخلص</h2>
