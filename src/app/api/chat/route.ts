@@ -43,7 +43,18 @@ export async function POST(req: Request) {
 
   let body: any;
   try {
-    body = await req.json();
+    // Read at most 40 KB even when Content-Length is missing or false (chunked requests).
+    const reader = req.body?.getReader();
+    if (!reader) throw new Error('no body');
+    const chunks: Uint8Array[] = []; let total = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > 40_000) { try { await reader.cancel(); } catch {} return NextResponse.json({ reply: 'طلب كبير جدا.' }, { status: 413 }); }
+      chunks.push(value);
+    }
+    body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
   } catch {
     return NextResponse.json({ reply: 'طلب غير صالح.' }, { status: 400 });
   }

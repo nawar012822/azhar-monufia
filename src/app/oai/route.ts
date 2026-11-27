@@ -15,11 +15,13 @@ const SEL = 'id,created_at,updated_at,title,author,abstract,keywords,language,da
 
 function wrap(req: URL, verb: string | null, body: string, err?: [string, string]) {
   const attrs = verb && !err ? ` verb="${xml(verb)}"` : '';
-  const reqAttrs = err ? '' : Array.from(req.searchParams.keys()).map(k => ` ${xml(k)}="${xml(req.searchParams.get(k))}"`).join('');
+  // per OAI-PMH 2.0 section 3.6 only badVerb/badArgument must omit the request attributes
+  const bare = !!err && (err[0] === 'badVerb' || err[0] === 'badArgument');
+  const reqAttrs = bare ? '' : Array.from(req.searchParams.keys()).map(k => ` ${xml(k)}="${xml(req.searchParams.get(k))}"`).join('');
   const out = `<?xml version="1.0" encoding="UTF-8"?>
 <OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
 <responseDate>${iso(new Date().toISOString())}</responseDate>
-<request${err ? '' : reqAttrs}>${SITE_URL}/oai</request>
+<request${reqAttrs}>${SITE_URL}/oai</request>
 ${err ? `<error code="${err[0]}">${xml(err[1])}</error>` : body}
 </OAI-PMH>`;
   void attrs;
