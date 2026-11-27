@@ -1,5 +1,6 @@
 import Toaster from '@/components/Toaster';
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { Cairo, Amiri } from "next/font/google";
 import "./globals.css";
 import { SITE_URL } from "@/lib/constants";
@@ -8,7 +9,18 @@ import ResearchAssistantWidget from "@/components/ResearchAssistantWidget";
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 const amiri = Amiri({ weight: ["400", "700"], subsets: ["arabic"], variable: "--font-amiri" });
 
+export const viewport: Viewport = {
+  themeColor: "#12543c",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
+  applicationName: "مستودع الأزهر",
+  appleWebApp: { capable: true, title: "مستودع الأزهر", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
+  icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
   metadataBase: new URL(SITE_URL),
   title: "المستودع الرقمي | جامعة الأزهر - كلية اللغة العربية بالمنوفية",
   description: "أرشيف علمي شامل - جامعة الأزهر",
@@ -28,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {children}
         <Toaster />
         <ResearchAssistantWidget />
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
