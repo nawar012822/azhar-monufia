@@ -71,6 +71,7 @@ export default function DepositPage() {
 
     setUploading(true);
     let key = '';
+    let newItemId: number | null = null;
     try {
       const orgId = Number(form.department);
       key = `${orgId}/${crypto.randomUUID()}.pdf`;
@@ -86,6 +87,7 @@ export default function DepositPage() {
         metadata: { supervisor: form.supervisor, contributors: form.contributors, subjects: form.subjects, orcid: form.orcid },
       }]).select('id').single();
       if (error) throw error;
+      newItemId = row.id;
 
       const { error: fe } = await supabase.from('item_files').insert([{ item_id: row.id, bucket: 'files', file_key: key, size_bytes: file.size, mime: 'application/pdf' }]);
       if (fe) throw fe;
@@ -93,6 +95,7 @@ export default function DepositPage() {
       notify(direct ? 'تم النشر مباشرة 🎉' : 'تم الإيداع بنجاح وسيتم مراجعته! 🎉');
       router.push('/profile');
     } catch (error: any) {
+      if (newItemId) await supabase.from('items').delete().eq('id', newItemId);
       if (key) await supabase.storage.from('files').remove([key]);
       notify('حدث خطأ: ' + error.message);
     } finally {

@@ -32,21 +32,27 @@ function SearchContent() {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState(false);
 
-  const executeSearch = async (searchQuery: string) => {
+  const PAGE = 50;
+  const [offset, setOffset] = useState(0);
+  const [more, setMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const executeSearch = async (searchQuery: string, from = 0) => {
+    const append = from > 0;
     setError(false);
-    setLoading(true);
+    if (append) setLoadingMore(true); else { setLoading(true); setMore(false); setOffset(0); }
     setSearched(true);
     
     const root = orgList.find(o => o.id === Number(department)) || orgList.find(o => o.path === ROOT_PATH);
-    if (!root) { setError(true); setResults([]); setLoading(false); return; }
-    const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: 50, p_offset: 0, p_lang: lang || null, p_year_from: yFrom ? Number(yFrom) : null, p_year_to: yTo ? Number(yTo) : null, p_license: lic || null });
-    if (e1) { setError(true); setResults([]); setLoading(false); return; }
+    if (!root) { setError(true); setResults([]); setLoading(false); setLoadingMore(false); return; }
+    const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: PAGE, p_offset: from, p_lang: lang || null, p_year_from: yFrom ? Number(yFrom) : null, p_year_to: yTo ? Number(yTo) : null, p_license: lic || null });
+    if (e1) { setError(true); if (!append) setResults([]); setLoading(false); setLoadingMore(false); return; }
     const list = (ids || []).map((r: any) => r.id);
-    if (list.length === 0) { setResults([]); setLoading(false); return; }
+    setMore(list.length === PAGE && from + PAGE < 1000); setOffset(from + list.length);
+    if (list.length === 0) { if (!append) setResults([]); setLoading(false); setLoadingMore(false); return; }
     const { data, error } = await supabase.from('items').select(ITEM_SELECT).in('id', list);
     const order = new Map<number, number>(list.map((id: number, i: number) => [id, i]));
-    if (error) { setError(true); setResults([]); } else setResults((data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)));
-    setLoading(false);
+    if (error) { setError(true); if (!append) setResults([]); } else { const page = (data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)); setResults(prev => append ? [...prev, ...page.filter((x: any) => !prev.some((y: any) => y.id === x.id))] : page); }
+    setLoading(false); setLoadingMore(false);
   };
 
   useEffect(() => {
@@ -128,10 +134,13 @@ function SearchContent() {
         <div className="text-center py-10"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#1B4D3E] mx-auto"></div></div>
       ) : searched && (
         <div>
-          <h2 className="text-xl font-bold mb-4">النتائج ({results.length})</h2>
+          <h2 className="text-xl font-bold mb-4">النتائج ({results.length}{more ? '+' : ''})</h2>
           <div className="grid md:grid-cols-2 gap-4 md:gap-5">
             {results.map(item => <ItemCard key={item.id} item={item} />)}
           </div>
+          {more && (
+            <button type="button" disabled={loadingMore} onClick={() => executeSearch(query, offset)} className="mt-6 w-full bg-white border border-[#1B4D3E] text-[#1B4D3E] py-3 rounded-xl font-bold hover:bg-gray-50 disabled:opacity-60">{loadingMore ? 'جاري التحميل...' : 'عرض المزيد'}</button>
+          )}
           <div className="space-y-4 mt-4">
             {error && <p className="text-red-600 bg-white p-8 rounded-xl border text-center">تعذر تنفيذ البحث الآن، حاول مرة أخرى.</p>}
             {!error && results.length === 0 && <p className="text-gray-500 bg-white p-8 rounded-xl border text-center">لا توجد نتائج مطابقة.</p>}
