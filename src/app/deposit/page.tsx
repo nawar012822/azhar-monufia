@@ -102,7 +102,7 @@ export default function DepositPage() {
 
   if (!ready) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
   if (!access?.userId || !access.canUpload) return (
-    <main className="min-h-screen bg-[#F8F6F0] flex items-center justify-center p-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] flex items-center justify-center p-4" dir="rtl">
       <div className="bg-white p-10 rounded-3xl shadow text-center max-w-md border">
         <h1 className="text-2xl font-bold mb-3">رفع المواد بصلاحية خاصة</h1>
         <p className="text-gray-600 mb-6 leading-relaxed">{access?.userId ? 'حسابك للعرض والتحميل فقط. رفع المواد بيتفعل لكل قسم بواسطة مدير القسم أو المدير العام. اطلب منهم يضيفوك.' : 'سجّل الدخول أولاً.'}</p>
@@ -112,7 +112,7 @@ export default function DepositPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <div className="max-w-3xl mx-auto">
         
         <div className="bg-[#1B4D3E] text-white p-8 rounded-2xl mb-8 flex justify-between items-center">
@@ -128,7 +128,7 @@ export default function DepositPage() {
         <form onSubmit={handleDeposit} className="space-y-8">
           
           {/* 1. البيانات الأساسية */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-md shadow-black/5 border border-gray-200/80">
             <h2 className="text-xl font-bold text-[#1B4D3E] mb-6 font-serif">١. البيانات الأساسية</h2>
             <div className="space-y-4">
               <div>
@@ -185,7 +185,7 @@ export default function DepositPage() {
           </div>
 
           {/* 2. بيانات النشر */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-md shadow-black/5 border border-gray-200/80">
             <h2 className="text-xl font-bold text-[#1B4D3E] mb-6 font-serif">٢. بيانات النشر</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -212,7 +212,7 @@ export default function DepositPage() {
           </div>
 
           {/* 3. الملف والإتاحة */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-md shadow-black/5 border border-gray-200/80">
             <h2 className="text-xl font-bold text-[#1B4D3E] mb-6 font-serif">٣. الملف والإتاحة</h2>
             
             <div className="mb-6">
@@ -238,7 +238,7 @@ export default function DepositPage() {
           </div>
 
           {/* 4. حقوق الاستخدام والإقرار */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 md:p-8 rounded-2xl shadow-md shadow-black/5 border border-gray-200/80">
             <h2 className="text-xl font-bold text-[#1B4D3E] mb-6 font-serif">٤. حقوق الاستخدام</h2>
             <div className="mb-6">
               <label className="block text-sm font-bold mb-2">حقوق الاستخدام (dc.rights)</label>

@@ -53,8 +53,8 @@ export default function ForgotPasswordPage() {
   const input = 'w-full bg-gray-50 border border-border p-3 pr-12 rounded-xl focus:ring-2 focus:ring-[#1B4D3E] outline-none transition-all';
 
   return (
-    <main className="min-h-screen bg-slate-50/50 flex items-center justify-center p-4" dir="rtl">
-      <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-border/50">
+    <main className="flex-1 bg-slate-50/50 flex items-center justify-center p-4" dir="rtl">
+      <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl shadow-black/5 w-full max-w-md border border-border/50 border-t-4 border-t-[#D4AF37]">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2 font-serif">نسيت كلمة المرور</h1>
           <p className="text-muted-foreground text-sm">{step === 'email' ? 'اكتب بريدك وهنبعتلك كود تأكيد' : 'اكتب الكود اللي وصلك على بريدك وكلمة المرور الجديدة'}</p>

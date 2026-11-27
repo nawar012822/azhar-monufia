@@ -109,7 +109,7 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <Suspense fallback={
         <div className="min-h-[50vh] flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div>

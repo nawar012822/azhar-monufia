@@ -13,7 +13,7 @@ const STAGES = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <div className="max-w-3xl mx-auto">
         <div className="bg-[#1B4D3E] text-white p-8 rounded-2xl mb-8">
           <h1 className="text-3xl font-bold font-serif mb-2">عن المستودع</h1>

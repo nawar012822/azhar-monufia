@@ -40,7 +40,7 @@ export default function MyLibraryPage() {
   const Empty = ({ t }: { t: string }) => <p className="text-gray-500 bg-white border rounded-xl p-6 text-center">{t}</p>;
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <div className="max-w-3xl mx-auto space-y-10">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[#1B4D3E] font-serif">مكتبتي</h1>

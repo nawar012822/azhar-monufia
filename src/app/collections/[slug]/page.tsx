@@ -36,7 +36,7 @@ export default function CollectionPage() {
   }, [params.slug]);
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-10 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-10 px-4" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-[#1B4D3E] font-serif">{collectionName || 'جاري التحميل...'}</h1>

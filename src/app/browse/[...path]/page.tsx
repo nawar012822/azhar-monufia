@@ -58,10 +58,10 @@ export default function BrowsePage() {
     })();
   }, [org, q, coll]);
 
-  if (missing) return <main className="min-h-screen flex items-center justify-center bg-[#F8F6F0] text-xl" dir="rtl">هذه الصفحة غير موجودة. <Link href="/" className="underline mr-2">الرئيسية</Link></main>;
+  if (missing) return <main className="flex-1 flex items-center justify-center bg-[#F8F6F0] text-xl" dir="rtl">هذه الصفحة غير موجودة. <Link href="/" className="underline mr-2">الرئيسية</Link></main>;
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-10 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-10 px-4" dir="rtl">
       <div className="max-w-6xl mx-auto">
         <nav className="text-sm text-gray-500 mb-4 flex flex-wrap gap-2 items-center">
           <Link href="/" className="hover:text-[#1B4D3E]">الرئيسية</Link>

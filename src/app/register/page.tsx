@@ -69,10 +69,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50/50 flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
+    <main className="flex-1 bg-slate-50/50 flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1B4D3E]/5 via-background to-background"></div>
       
-      <div className="bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-border/50 relative z-10">
+      <div className="bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-xl shadow-black/5 w-full max-w-md border border-border/50 border-t-4 border-t-[#D4AF37] relative z-10">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-[#1B4D3E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <img src="/logo-sm.jpg" width={56} height={56} alt="الشعار" className="w-14 h-14 rounded-full object-cover" />

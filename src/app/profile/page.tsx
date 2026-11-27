@@ -53,7 +53,7 @@ export default function ProfilePage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-12 px-4" dir="rtl">
       <div className="max-w-4xl mx-auto space-y-8">
         
         <div className="bg-[#1B4D3E] text-white p-8 rounded-2xl shadow-sm flex justify-between items-center">
@@ -64,7 +64,7 @@ export default function ProfilePage() {
           <button onClick={handleLogout} className="bg-red-500/20 text-red-100 hover:bg-red-500/40 px-5 py-2 rounded-xl transition flex items-center gap-2"><LogOut className="w-4 h-4"/> خروج</button>
         </div>
 
-        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+        <div className="bg-white p-8 rounded-2xl shadow-md shadow-black/5 border border-gray-200/80">
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -97,7 +97,7 @@ export default function ProfilePage() {
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {myItems.map(item => (
-                <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-md transition">
+                <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-lg hover:-translate-y-0.5 transition">
                   <h3 className="text-lg font-bold text-[#1B4D3E] mb-2 font-serif line-clamp-1">{item.title}</h3>
                   <div className="flex flex-wrap gap-2 text-xs font-bold">
                     <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full">{STATUS_AR[item.status] || item.status}</span>
@@ -119,7 +119,7 @@ export default function ProfilePage() {
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {favItems.map(item => (
-                <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-md transition">
+                <Link href={`/item/${item.id}`} key={item.id} className="bg-white p-5 rounded-2xl border border-gray-200 hover:shadow-lg hover:-translate-y-0.5 transition">
                   <h3 className="text-lg font-bold text-[#1B4D3E] mb-2 font-serif line-clamp-1">{item.title}</h3>
                   <p className="text-sm text-gray-500">{item.author}</p>
                 </Link>

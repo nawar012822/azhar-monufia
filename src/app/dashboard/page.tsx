@@ -109,11 +109,11 @@ export default function DashboardPage() {
   const label = access.isSuper ? 'المدير العام' : access.best >= 3 ? 'مدير' : 'مراجع';
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] pb-20" dir="rtl">
-      <div className="bg-[#1B4D3E] text-white py-12 px-4">
+    <main className="flex-1 bg-[#F8F6F0] pb-20" dir="rtl">
+      <div className="bg-gradient-to-l from-[#0C422E] to-[#1B4D3E] text-white py-8 md:py-12 px-4">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold font-serif mb-2">لوحة التحكم</h1>
+            <h1 className="text-3xl md:text-4xl font-bold font-serif mb-2">لوحة التحكم</h1>
             <p className="text-[#D4AF37] text-lg">{label}</p>
           </div>
           <Link href="/" className="bg-white/10 hover:bg-white/20 px-5 py-2 rounded-xl text-sm font-bold">الرئيسية</Link>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-6 relative z-20">
-        <div className="bg-white p-2 rounded-2xl shadow-sm border flex gap-2 mb-6 overflow-x-auto">
+        <div className="bg-white/95 backdrop-blur p-2 rounded-2xl shadow-md border flex gap-2 mb-6 overflow-x-auto sticky top-[72px] z-30">
           {tabs.map(([k, t]) => (
             <button key={k} onClick={() => { setTab(k); setQ(''); }} className={`flex-1 min-w-[110px] py-3 rounded-xl font-bold text-sm transition ${tab === k ? 'bg-[#F8F6F0] shadow-inner text-[#1B4D3E]' : 'text-gray-500 hover:bg-gray-50'}`}>{t}</button>
           ))}

@@ -76,11 +76,11 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
 
   const onReading = () => { const on = toggleReading({ id: item.id, title: item.title, author: item.author }); setReading(on); notify(on ? 'أضيفت لقائمة القراءة على هذا الجهاز' : 'أزيلت من قائمة القراءة'); };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
-  if (!item) return <div className="min-h-screen flex items-center justify-center bg-[#F8F6F0] text-xl">المادة غير موجودة.</div>;
+  if (loading) return <div className="flex-1 flex items-center justify-center bg-[#F8F6F0] py-24"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1B4D3E]"></div></div>;
+  if (!item) return <div className="flex-1 flex items-center justify-center bg-[#F8F6F0] text-xl py-24">المادة غير موجودة.</div>;
 
   return (
-    <main className="min-h-screen bg-[#F8F6F0] py-12 px-4" dir="rtl">
+    <main className="flex-1 bg-[#F8F6F0] py-8 md:py-12 px-4" dir="rtl">
       <div className="max-w-4xl mx-auto">
         
         <div className="flex flex-wrap gap-3 justify-between items-center mb-8">
@@ -97,7 +97,7 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
           </div>
         </div>
 
-        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 md:p-12 rounded-3xl shadow-lg shadow-black/5 border border-gray-200/80 border-t-4 border-t-[#D4AF37]">
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="bg-[#1B4D3E]/10 text-[#1B4D3E] px-3 py-1 rounded-full text-sm font-bold">{item.collection}</span>
             <span className="bg-[#D4AF37]/10 text-[#8a6d1c] px-3 py-1 rounded-full text-sm font-bold">{item.department}</span>
@@ -106,11 +106,11 @@ export default function ItemView({ initialItem, id }: { initialItem: any | null;
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-bold text-[#1B4D3E] mb-4 font-serif leading-tight">{item.title}</h1>
+          <h1 className="text-2xl md:text-4xl font-bold text-[#1B4D3E] mb-4 font-serif leading-snug">{item.title}</h1>
           
-          <div className="flex items-center gap-4 text-gray-600 mb-8 border-b pb-6">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-gray-600 mb-8 border-b pb-6 text-sm md:text-base">
             <span className="flex items-center gap-1"><BookOpen className="w-4 h-4"/> {item.author}</span>
-            <span className="flex items-center gap-1"><Calendar className="w-4 h-4"/> {item.date_issued}</span>
+            {item.date_issued && <span className="flex items-center gap-1"><Calendar className="w-4 h-4"/> {item.date_issued}</span>}
             <span className="flex items-center gap-1"><Eye className="w-4 h-4"/> {item.views || 0} مشاهدة</span>
           </div>
 
