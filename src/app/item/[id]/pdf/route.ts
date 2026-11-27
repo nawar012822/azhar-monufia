@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 // Stable, permanent link to an item's PDF (for Google Scholar, harvesters and citations).
 // Redirects to a short-lived signed link. Only works for files the public can read (open items).
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!/^\d+$/.test(params.id)) return new NextResponse('Not found', { status: 404 });
   const sb = serverClient();
   const { data: f } = await sb.from('item_files').select('bucket,file_key').eq('item_id', params.id).maybeSingle();

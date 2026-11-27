@@ -27,7 +27,8 @@ const getSimilar = cache(async (id: string, collectionId: number, orgId: number)
   return data || [];
 });
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const params = await props.params;
   const item = await getItem(params.id);
   if (!item) return { title: 'مادة | المستودع الرقمي', robots: { index: false } };
   const description = (item.abstract || '').slice(0, 160);
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   };
 }
 
-export default async function ItemPage({ params }: { params: { id: string } }) {
+export default async function ItemPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   if (!/^\d+$/.test(params.id)) notFound();
   const item = await getItem(params.id);
   if (!item) { const { data: ex } = await serverClient().rpc('item_exists', { p_id: Number(params.id) }); if (ex === false) notFound(); }
