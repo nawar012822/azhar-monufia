@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'crypto';
+import { serverClient } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 
 const MAX_MESSAGES = 12;
 const MAX_CHARS = 1500;
+const DAILY_PER_IP = 40;   // questions per visitor (hashed IP) per day
+const DAILY_TOTAL = 800;   // all visitors together per day, keeps the free model quota safe
 const WINDOW_MS = 60_000;
 const MAX_REQ_PER_WINDOW = 8;
 
@@ -31,6 +35,17 @@ export async function POST(req: Request) {
   const ip = (req.headers.get('x-forwarded-for') || 'unknown').split(',')[0].trim();
   if (limited(ip)) {
     return NextResponse.json({ reply: 'طلبات كثيرة في وقت قصير، حاول بعد دقيقة.' }, { status: 429 });
+  }
+
+  // Daily quota kept in the database (shared by all server instances). Fails open if the database is unreachable.
+  const quotaSecret = process.env.CHAT_QUOTA_SECRET;
+  if (quotaSecret) {
+    try {
+      const key = createHash('sha256').update(ip + ':' + quotaSecret).digest('hex').slice(0, 32);
+      const { data: q } = await serverClient().rpc('chat_take', { p_secret: quotaSecret, p_key: key, p_user_cap: DAILY_PER_IP, p_total_cap: DAILY_TOTAL });
+      if (q === 'user') return NextResponse.json({ reply: 'وصلت للحد اليومي من الأسئلة. جرّب غداً بإذن الله.' }, { status: 429 });
+      if (q === 'total') return NextResponse.json({ reply: 'المساعد وصل لحده اليومي لكل الزوار. جرّب غداً بإذن الله.' }, { status: 429 });
+    } catch { /* fail open */ }
   }
 
   const len = Number(req.headers.get('content-length') || '0');
