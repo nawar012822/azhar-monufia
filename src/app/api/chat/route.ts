@@ -33,6 +33,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ reply: 'طلبات كثيرة في وقت قصير، حاول بعد دقيقة.' }, { status: 429 });
   }
 
+  const len = Number(req.headers.get('content-length') || '0');
+  if (len > 40_000) return NextResponse.json({ reply: 'طلب كبير جدا.' }, { status: 413 });
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ reply: 'المساعد غير متاح حالياً.' }, { status: 503 });

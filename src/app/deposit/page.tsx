@@ -68,6 +68,8 @@ export default function DepositPage() {
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return notify('الملف لازم يكون PDF');
     if (file.size > 50 * 1024 * 1024) return notify('حجم الملف أكبر من 50 ميجابايت');
     if (!form.department || !form.collection) return notify('اختر القسم ونوع المادة');
+    const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+    if (String.fromCharCode(...head) !== '%PDF-') return notify('الملف ليس PDF حقيقيا');
 
     setUploading(true);
     let key = '';

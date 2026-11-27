@@ -13,3 +13,4 @@ returns jsonb language sql stable security invoker set search_path = repo, publi
   )
 $$;
 grant execute on function repo.dashboard_stats() to authenticated;
+revoke execute on function repo.dashboard_stats() from public, anon; grant execute on function repo.dashboard_stats() to authenticated;
