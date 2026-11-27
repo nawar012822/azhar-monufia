@@ -163,13 +163,13 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">حالة النشر</label>
-                    <select value={i.status} onChange={e => setStatus(i.id, e.target.value)} className="w-full p-2 border rounded-lg bg-gray-50 text-sm">
+                    <select aria-label="الحالة" value={i.status} onChange={e => setStatus(i.id, e.target.value)} className="w-full p-2 border rounded-lg bg-gray-50 text-sm">
                       {Object.entries(STATUS_AR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="text-xs text-gray-500 mb-1 block">مستوى الوصول</label>
-                    <select value={i.access} onChange={e => setAccessLevel(i.id, e.target.value)} className="w-full p-2 border rounded-lg bg-gray-50 text-sm">
+                    <select aria-label="الإتاحة" value={i.access} onChange={e => setAccessLevel(i.id, e.target.value)} className="w-full p-2 border rounded-lg bg-gray-50 text-sm">
                       {Object.entries(ACCESS_AR).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
@@ -187,7 +187,7 @@ export default function DashboardPage() {
           <div className="space-y-6">
             <form onSubmit={addOrg} className="bg-white p-6 rounded-2xl border space-y-4">
               <h3 className="text-lg font-bold text-[#1B4D3E]">إضافة قسم فرعي أو كلية</h3>
-              <select required value={oParent} onChange={e => setOParent(e.target.value)} className="w-full p-3 border rounded-xl">
+              <select aria-label="الجهة الأعلى" required value={oParent} onChange={e => setOParent(e.target.value)} className="w-full p-3 border rounded-xl">
                 <option value="">تابع لـ...</option>
                 {adminOrgs.map(o => <option key={o.id} value={o.id}>{'— '.repeat(Math.max(0, o.path.split('/').length - 1))}{o.name_ar} ({KIND_AR[o.kind]})</option>)}
               </select>

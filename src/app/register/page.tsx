@@ -75,7 +75,7 @@ export default function RegisterPage() {
       <div className="bg-white/80 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-xl w-full max-w-md border border-border/50 relative z-10">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-[#1B4D3E]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <img src="/logo.jpg" alt="Logo" className="w-14 h-14 rounded-full object-cover" />
+            <img src="/logo-sm.jpg" width={56} height={56} alt="الشعار" className="w-14 h-14 rounded-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-foreground mb-2 font-serif">حساب جديد</h1>
           <p className="text-muted-foreground text-sm">انضم إلى المستودع الرقمي للكلية</p>
@@ -112,7 +112,7 @@ export default function RegisterPage() {
             <div className="relative">
               <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
               <input required type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} className="w-full bg-gray-50 border border-border p-3 pr-12 pl-12 rounded-xl focus:ring-2 focus:ring-[#1B4D3E] outline-none transition-all" placeholder="••••••••" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#1B4D3E]">
+              <button type="button" aria-label="إظهار أو إخفاء كلمة المرور" onClick={() => setShowPassword(!showPassword)} className="absolute left-1 top-1/2 -translate-y-1/2 p-3 text-muted-foreground hover:text-[#1B4D3E]">
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>

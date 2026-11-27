@@ -71,14 +71,14 @@ function SearchContent() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-bold mb-2">المجموعة</label>
-              <select value={collection} onChange={e => setCollection(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
+              <select aria-label="المجموعة" value={collection} onChange={e => setCollection(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل المجموعات</option>
                 {COLLECTIONS.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-bold mb-2">القسم</label>
-              <select value={department} onChange={e => setDepartment(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
+              <select aria-label="القسم" value={department} onChange={e => setDepartment(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل الأقسام</option>
                 {orgList.filter(o => o.kind !== 'university' && !o.path.endsWith('/unclassified')).map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 2))}{d.name_ar}</option>)}
               </select>

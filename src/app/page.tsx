@@ -86,14 +86,14 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 flex h-24 items-center justify-between">
           <Link href="/" className="flex items-center gap-3 md:gap-4 shrink-0">
-            <img src="/logo.jpg" alt="الشعار" className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover border-2 border-gray-100 shadow-sm shrink-0" />
+            <img src="/logo-sm.jpg" width={112} height={112} alt="الشعار" className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover border-2 border-gray-100 shadow-sm shrink-0" />
             <div className="text-right flex flex-col justify-center">
               <span className="font-bold text-lg md:text-2xl text-[#1B4D3E] block leading-tight font-serif">المستودع الرقمي</span>
               <span className="text-[10px] md:text-sm text-gray-500 block mt-1">كلية اللغة العربية بالمنوفية</span>
             </div>
           </Link>
 
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 border rounded-lg text-gray-600 hover:bg-gray-50 shrink-0">
+          <button aria-label="القائمة" aria-expanded={isMobileMenuOpen} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 border rounded-lg text-gray-600 hover:bg-gray-50 shrink-0">
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -129,7 +129,7 @@ export default function Home() {
                  style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
           
           <div className="relative z-30 max-w-3xl mx-auto">
-            <img src="/logo.jpg" alt="الشعار" className="h-28 w-28 rounded-full mx-auto mb-6 border-4 border-white shadow-lg object-cover" />
+            <img src="/logo-sm.jpg" width={112} height={112} alt="الشعار" className="h-28 w-28 rounded-full mx-auto mb-6 border-4 border-white shadow-lg object-cover" />
             <p className="text-[#D4AF37] text-lg mb-2 font-bold">جامعة الأزهر - كلية اللغة العربية بالمنوفية</p>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 font-serif leading-tight">المستودع الرقمي لكلية اللغة العربية</h1>
             <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed">حفظ الإنتاج العلمي للكلية وتنظيمه وإتاحته للطلاب والباحثين وأعضاء هيئة التدريس.</p>
@@ -230,7 +230,7 @@ export default function Home() {
                       {orgs.filter(x => x.parent_id === d.id).length > 0 && (
                         <div className="mt-1 flex flex-wrap gap-2 text-sm">
                           {orgs.filter(x => x.parent_id === d.id).map(x => (
-                            <Link key={x.id} href={`/browse/${x.path}`} className="text-gray-500 hover:text-[#1B4D3E]">• {x.name_ar}</Link>
+                            <Link key={x.id} href={`/browse/${x.path}`} className="text-gray-500 hover:text-[#1B4D3E] inline-block py-2">• {x.name_ar}</Link>
                           ))}
                         </div>
                       )}

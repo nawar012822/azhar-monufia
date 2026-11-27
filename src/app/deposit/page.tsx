@@ -148,13 +148,13 @@ export default function DepositPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold mb-2">نوع المادة *</label>
-                  <select value={form.collection} onChange={e => setForm({...form, collection: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
+                  <select aria-label="المجموعة" value={form.collection} onChange={e => setForm({...form, collection: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
                     {colls.filter(c => c.org_id === facId).map(c => <option key={c.id} value={c.id}>{c.name_ar}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">القسم العلمي *</label>
-                  <select value={form.department} onChange={e => setForm({...form, department: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
+                  <select aria-label="القسم" value={form.department} onChange={e => setForm({...form, department: e.target.value})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E] bg-white">
                     {depts.map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 3))}{d.name_ar}</option>)}
                   </select>
                 </div>

@@ -166,11 +166,11 @@ export default function MembersPanel({ access, orgs }: { access: Access; orgs: a
                             </div>
                           )}
                           <div className="flex flex-col md:flex-row gap-2">
-                            <select value={role} onChange={e => setRole(e.target.value)} className="p-3 border rounded-xl bg-white flex-1">
+                            <select aria-label="الدور" value={role} onChange={e => setRole(e.target.value)} className="p-3 border rounded-xl bg-white flex-1">
                               {roleOptions.map(([k, n, h]) => <option key={k} value={k}>{n} — {h}</option>)}
                             </select>
                             {['uploader', 'moderator', 'admin'].includes(role) && (
-                              <select value={scope} onChange={e => setScope(e.target.value)} className="p-3 border rounded-xl bg-white flex-1">
+                              <select aria-label="النطاق" value={scope} onChange={e => setScope(e.target.value)} className="p-3 border rounded-xl bg-white flex-1">
                                 {scopes.map(o => <option key={o.id} value={o.id}>{o.kind === 'faculty' ? 'كل أقسام: ' : '— '.repeat(Math.max(0, o.path.split('/').length - 3)) + 'قسم: '}{o.name_ar}</option>)}
                               </select>
                             )}
@@ -194,7 +194,7 @@ export default function MembersPanel({ access, orgs }: { access: Access; orgs: a
                             </Row>
                             <Row t="إيقاف مؤقت" h="مايقدرش يدخل الموقع لحد ما المدة تخلص.">
                               <div className="flex gap-2 items-center">
-                                <select value={suspended(u) ? 'keep' : days} onChange={e => setDays(e.target.value)} className="p-2 border rounded-lg bg-white text-sm">
+                                <select aria-label="مدة الإيقاف" value={suspended(u) ? 'keep' : days} onChange={e => setDays(e.target.value)} className="p-2 border rounded-lg bg-white text-sm">
                                   {suspended(u) && <option value="keep">موقوف حتى {new Date(u.suspended_until!).toLocaleDateString('ar-EG')}</option>}
                                   <option value="0">غير موقوف</option><option value="1">يوم</option><option value="7">٧ أيام</option><option value="30">٣٠ يوم</option>
                                 </select>
