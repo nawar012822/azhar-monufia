@@ -21,6 +21,7 @@ export default function Home() {
   const [showDropdown, setShowDropdown] = useState(false);
   
   const [orgs, setOrgs] = useState<any[]>([]);
+  const [st, setSt] = useState<any>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -29,6 +30,8 @@ export default function Home() {
         if (!error && data) setItems(data.map(flat));
         const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').like('path', `${ROOT_PATH}/%`).order('path');
         setOrgs(o || []);
+        const { data: sd } = await supabase.rpc('site_stats');
+        if (sd) setSt(sd);
       } catch (err) {
         console.error(err);
       } finally {
@@ -52,12 +55,12 @@ export default function Home() {
     ? items.filter(item => norm(item.title).includes(nq) || norm(item.author || '').includes(nq) || norm(item.keywords || '').includes(nq)).slice(0, 5)
     : [];
 
-  const totalViews = items.reduce((sum, item) => sum + (item.views || 0), 0);
-  const countOf = (slug: string) => items.filter(i => i.collection_slug === slug).length;
+  const totalViews = st ? Number(st.views) : items.reduce((sum, item) => sum + (item.views || 0), 0);
+  const countOf = (slug: string) => st ? Number(st.by_collection?.[slug] || 0) : items.filter(i => i.collection_slug === slug).length;
   const mostViewed = [...items].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 4);
   const latestItems = items.slice(0, 6);
   const stats = [
-    [items.length, 'مادة منشورة'],
+    [st ? Number(st.total) : items.length, 'مادة منشورة'],
     [countOf('books'), 'كتاب'],
     [orgs.filter(o => o.kind !== 'faculty').length, 'قسم وتخصص'],
     [totalViews, 'مشاهدة'],
