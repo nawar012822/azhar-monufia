@@ -81,7 +81,7 @@ function SearchContent() {
               <label className="block text-sm font-bold mb-2">القسم</label>
               <select aria-label="القسم" value={department} onChange={e => setDepartment(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل الأقسام</option>
-                {orgList.filter(o => o.kind !== 'university' && !o.path.endsWith('/unclassified')).map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 2))}{d.name_ar}</option>)}
+                {orgList.filter(o => o.kind !== 'university').map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 2))}{d.name_ar}</option>)}
               </select>
             </div>
           </div>

@@ -27,13 +27,13 @@ export default function BrowsePage() {
   useEffect(() => {
     (async () => {
       const prefixes = segs.map((_, i) => segs.slice(0, i + 1).join('/'));
-      const { data: chain } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').in('path', prefixes);
+      const { data: chain } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path,settings').in('path', prefixes);
       const cur = (chain || []).find((o: any) => o.path === path);
       if (!cur) { setMissing(true); setLoading(false); return; }
       setOrg(cur);
       setCrumbs(prefixes.map(p => (chain || []).find((o: any) => o.path === p)).filter(Boolean));
       const { data: kids } = await supabase.from('orgs').select('id,name_ar,path,kind,sort').eq('parent_id', cur.id).order('sort').order('name_ar');
-      setChildren((kids || []).filter((k: any) => !k.path.endsWith('/unclassified')));
+      setChildren(kids || []);
       // collections of the nearest faculty (or this org when it is a faculty)
       const facPath = segs.slice(0, 2).join('/');
       const fac = (chain || []).find((o: any) => o.path === facPath);
@@ -74,6 +74,7 @@ export default function BrowsePage() {
           <div>
             <p className="text-sm text-[#D4AF37] font-bold mb-1">{org ? KIND_AR[org.kind] : ''}</p>
             <h1 className="text-2xl md:text-4xl font-bold text-white font-serif">{org?.name_ar || 'جاري التحميل...'}</h1>
+            {org?.settings?.description && <p className="text-white/80 mt-2 text-sm md:text-base max-w-xl">{org.settings.description}</p>}
           </div>
           <Link href="/" className="flex items-center gap-2 text-sm font-bold text-white/90 hover:text-white bg-white/10 px-5 py-2.5 rounded-xl border border-white/20 self-start"><ArrowRight className="w-4 h-4" /> الرئيسية</Link>
         </div>
