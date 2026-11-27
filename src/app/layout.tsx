@@ -10,10 +10,10 @@ const amiri = Amiri({ weight: ["400", "700"], subsets: ["arabic"], variable: "--
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "المستودع الرقمي | كلية اللغة العربية بالمنوفية",
+  title: "المستودع الرقمي | جامعة الأزهر - كلية اللغة العربية بالمنوفية",
   description: "أرشيف علمي شامل - جامعة الأزهر",
   openGraph: {
-    title: "المستودع الرقمي | كلية اللغة العربية",
+    title: "المستودع الرقمي | جامعة الأزهر - كلية اللغة العربية بالمنوفية",
     description: "أرشيف علمي شامل - جامعة الأزهر",
     locale: "ar_EG",
     type: "website",

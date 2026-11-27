@@ -24,7 +24,7 @@ create table repo.orgs (
   root_id    bigint not null,                       -- the university (self for roots)
   kind       repo.org_kind not null,
   slug       text not null check (slug ~ '^[a-z0-9-]+$'),
-  path       text not null unique,                  -- 'azhar/arabic-shebin'
+  path       text not null unique,                  -- 'azhar/arabic-menoufia'
   name_ar    text not null,
   name_en    text,
   settings   jsonb not null default '{}'::jsonb,    -- branding, labels, ...

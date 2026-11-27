@@ -1,12 +1,12 @@
--- Seeds the first tenant (Al-Azhar > Arabic Language, Shebin El-Kom) and copies v1 data.
+-- Seeds the first tenant (Al-Azhar > Arabic Language, Menoufia) and copies v1 data.
 -- Non-destructive: reads public.items/profiles/favorites, never alters them. Safe to re-run? NO: run once.
 insert into repo.orgs (slug, name_ar, name_en, kind)
   values ('azhar', 'جامعة الأزهر', 'Al-Azhar University', 'university');
 insert into repo.orgs (parent_id, slug, name_ar, name_en, kind)
-  select id, 'arabic-shebin', 'كلية اللغة العربية - شبين الكوم', 'Faculty of Arabic Language - Shebin El-Kom', 'faculty'
+  select id, 'arabic-menoufia', 'كلية اللغة العربية بالمنوفية', 'Faculty of Arabic Language - Menoufia', 'faculty'
   from repo.orgs where slug = 'azhar' and parent_id is null;
 
-with f as (select id from repo.orgs where path = 'azhar/arabic-shebin'),
+with f as (select id from repo.orgs where path = 'azhar/arabic-menoufia'),
 c(key, slug, name_ar, icon, sort) as (values
  ('كتب ومراجع','books','الكتب والمراجع','📚',1), ('رسائل جامعية','theses','الرسائل الجامعية','🎓',2),
  ('أبحاث علمية','research','الأبحاث العلمية','🔬',3), ('مخطوطات','manuscripts','المخطوطات والتراث','📜',4),
@@ -15,10 +15,10 @@ c(key, slug, name_ar, icon, sort) as (values
 insert into repo.collections (org_id, slug, name_ar, icon, sort) select f.id, c.slug, c.name_ar, c.icon, c.sort from f, c;
 
 -- v1 keeps the collection key in items.collection; keep it in metadata so nothing is lost.
--- Department tree of the Faculty of Arabic Language, Menoufia (Shebin El-Kom). Source: the departments already used by
+-- Department tree of the Faculty of Arabic Language, Menoufia (Menoufia). Source: the departments already used by
 -- his site (search page list) + public lists of the faculty (see ARCHITECTURE.md). Names/nesting must be confirmed by Ahmed.
 create temp table _dept (name text primary key, org_id bigint);
-do $$ declare fac bigint := (select id from repo.orgs where path='azhar/arabic-shebin'); nid bigint; doc bigint;
+do $$ declare fac bigint := (select id from repo.orgs where path='azhar/arabic-menoufia'); nid bigint; doc bigint;
 begin
   insert into repo.orgs (parent_id, slug, name_ar, kind) values (fac,'usul-lugha','أصول اللغة','department') returning id into nid;      insert into _dept values ('أصول اللغة', nid);
   insert into repo.orgs (parent_id, slug, name_ar, kind) values (fac,'nahw-sarf','النحو والصرف','department') returning id into nid;      insert into _dept values ('النحو والصرف', nid);
@@ -38,7 +38,7 @@ insert into repo.profiles (id, email, full_name)
 -- v1 'admin' -> faculty admin, 'moderator' -> faculty moderator. Plain users get NO role (view/download only,
 -- as decided). The university-level super admin is added separately: insert into repo.platform_admins.
 insert into repo.memberships (user_id, org_id, role)
-  select p.id, (select id from repo.orgs where path='azhar/arabic-shebin'),
+  select p.id, (select id from repo.orgs where path='azhar/arabic-menoufia'),
          case p.role when 'admin' then 'admin'::repo.role_level else 'moderator' end
   from public.profiles p where p.role in ('admin','moderator');
 
@@ -46,8 +46,8 @@ create temp table _map (old_id bigint primary key, new_id bigint);
 with ins as (
   insert into repo.items (org_id, collection_id, status, access, title, author, abstract, keywords, language,
                           date_issued, publisher, rights, isbn, pages, metadata, submitted_by, created_at)
-  select coalesce((select d.org_id from _dept d where d.name = i.department), (select id from repo.orgs where path='azhar/arabic-shebin/unclassified')),
-         (select c.id from repo.collections c where c.org_id=(select id from repo.orgs where path='azhar/arabic-shebin')
+  select coalesce((select d.org_id from _dept d where d.name = i.department), (select id from repo.orgs where path='azhar/arabic-menoufia/unclassified')),
+         (select c.id from repo.collections c where c.org_id=(select id from repo.orgs where path='azhar/arabic-menoufia')
             and c.slug = case i.collection when 'كتب ومراجع' then 'books' when 'رسائل جامعية' then 'theses' when 'أبحاث علمية' then 'research'
               when 'مخطوطات' then 'manuscripts' when 'إنتاج هيئة التدريس' then 'faculty-output' when 'مشروعات الطلاب' then 'student-projects'
               when 'الدوريات والمجلات' then 'periodicals' when 'المحاضرات والمواد' then 'lectures' else 'books' end),

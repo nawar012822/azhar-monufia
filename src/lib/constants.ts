@@ -3,7 +3,7 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://azhar-repo
 
 // Root of the tree shown on this site. Add more universities later by adding rows, not code.
 export const ROOT_PATH = process.env.NEXT_PUBLIC_ROOT_PATH || 'azhar';
-export const DEFAULT_FACULTY_PATH = process.env.NEXT_PUBLIC_FACULTY_PATH || 'azhar/arabic-shebin';
+export const DEFAULT_FACULTY_PATH = process.env.NEXT_PUBLIC_FACULTY_PATH || 'azhar/arabic-menoufia';
 
 export const COLLECTIONS = [
   { slug: 'books', name: 'الكتب والمراجع', icon: '📚' },

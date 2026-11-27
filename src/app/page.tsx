@@ -89,7 +89,7 @@ export default function Home() {
             <img src="/logo.jpg" alt="الشعار" className="h-12 w-12 md:h-16 md:w-16 rounded-full object-cover border-2 border-gray-100 shadow-sm shrink-0" />
             <div className="text-right flex flex-col justify-center">
               <span className="font-bold text-lg md:text-2xl text-[#1B4D3E] block leading-tight font-serif">المستودع الرقمي</span>
-              <span className="text-[10px] md:text-sm text-gray-500 block mt-1">كلية اللغة العربية - شبين الكوم</span>
+              <span className="text-[10px] md:text-sm text-gray-500 block mt-1">كلية اللغة العربية بالمنوفية</span>
             </div>
           </Link>
 
@@ -130,7 +130,7 @@ export default function Home() {
           
           <div className="relative z-30 max-w-3xl mx-auto">
             <img src="/logo.jpg" alt="الشعار" className="h-28 w-28 rounded-full mx-auto mb-6 border-4 border-white shadow-lg object-cover" />
-            <p className="text-[#D4AF37] text-lg mb-2 font-bold">جامعة الأزهر - فرع شبين الكوم</p>
+            <p className="text-[#D4AF37] text-lg mb-2 font-bold">جامعة الأزهر - كلية اللغة العربية بالمنوفية</p>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 font-serif leading-tight">المستودع الرقمي لكلية اللغة العربية</h1>
             <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed">حفظ الإنتاج العلمي للكلية وتنظيمه وإتاحته للطلاب والباحثين وأعضاء هيئة التدريس.</p>
 
@@ -292,7 +292,7 @@ export default function Home() {
 
       <footer className="bg-[#0C422E] text-white py-12 text-center">
         <div className="max-w-4xl mx-auto px-4">
-          <h3 className="text-2xl font-bold mb-4 font-serif">المستودع الرقمي لكلية اللغة العربية - جامعة الأزهر - فرع شبين الكوم</h3>
+          <h3 className="text-2xl font-bold mb-4 font-serif">المستودع الرقمي لكلية اللغة العربية - جامعة الأزهر - كلية اللغة العربية بالمنوفية</h3>
           <p className="text-gray-300 mb-8 text-sm">نموذج غير رسمي قيد التطوير. بعض المواد المعروضة تجريبية لأغراض العرض.</p>
           <div className="border-t border-white/20 pt-6">
             <p className="text-[#D4AF37] font-bold text-lg mb-1">© 2026 جميع الحقوق محفوظة - أحمد محمود نوار</p>
