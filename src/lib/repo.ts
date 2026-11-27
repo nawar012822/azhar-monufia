@@ -53,6 +53,7 @@ export async function loadAccess(sb: any): Promise<Access> {
 
 // Descendant org ids (including the node itself) for a path.
 export async function subtreeIds(sb: any, path: string): Promise<number[]> {
+  if (!/^[a-z0-9][a-z0-9\-\/]*$/i.test(path)) return [];
   const { data } = await sb.from('orgs').select('id,path').or(`path.eq.${path},path.like.${path}/%`);
   return (data || []).map((x: any) => x.id);
 }
