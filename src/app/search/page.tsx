@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { ROOT_PATH, COLLECTIONS } from '@/lib/constants';
-import { flat, ITEM_SELECT } from '@/lib/repo';
+import { flat, ITEM_SELECT, treeSort } from '@/lib/repo';
 
 
 function SearchContent() {
@@ -20,7 +20,7 @@ function SearchContent() {
   const [orgList, setOrgList] = useState<any[]>([]);
   const [collMap, setCollMap] = useState<Record<string, number>>({});
   useEffect(() => {
-    supabase.from('orgs').select('id,name_ar,path,kind').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`).order('path').then(({ data }) => setOrgList(data || []));
+    supabase.from('orgs').select('id,name_ar,path,kind,sort').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`).then(({ data }) => setOrgList(treeSort(data || [])));
     supabase.from('collections').select('id,slug').then(({ data }) => { const m: Record<string, number> = {}; (data || []).forEach((c: any) => { m[c.slug] = c.id; }); setCollMap(m); });
   }, []);
   const [results, setResults] = useState<any[]>([]);

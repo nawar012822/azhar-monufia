@@ -32,7 +32,7 @@ export default function BrowsePage() {
       if (!cur) { setMissing(true); setLoading(false); return; }
       setOrg(cur);
       setCrumbs(prefixes.map(p => (chain || []).find((o: any) => o.path === p)).filter(Boolean));
-      const { data: kids } = await supabase.from('orgs').select('id,name_ar,path,kind').eq('parent_id', cur.id).order('name_ar');
+      const { data: kids } = await supabase.from('orgs').select('id,name_ar,path,kind,sort').eq('parent_id', cur.id).order('sort').order('name_ar');
       setChildren((kids || []).filter((k: any) => !k.path.endsWith('/unclassified')));
       // collections of the nearest faculty (or this org when it is a faculty)
       const facPath = segs.slice(0, 2).join('/');

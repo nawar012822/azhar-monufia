@@ -7,7 +7,7 @@ import { Search, ArrowLeft, Folder } from 'lucide-react';
 import ItemCard from '@/components/ItemCard';
 import { supabase } from '@/lib/supabase';
 import { COLLECTIONS, ROOT_PATH } from '@/lib/constants';
-import { ITEM_SELECT, flat } from '@/lib/repo';
+import { ITEM_SELECT, flat, treeSort } from '@/lib/repo';
 
 const ALL_COLLECTIONS = COLLECTIONS.map(c => ({ ...c, id: c.slug }));
 
@@ -28,8 +28,8 @@ export default function Home() {
       try {
         const { data, error } = await supabase.from('items').select(ITEM_SELECT).eq('status', 'approved').order('created_at', { ascending: false }).limit(200);
         if (!error && data) setItems(data.map(flat));
-        const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').like('path', `${ROOT_PATH}/%`).order('path');
-        setOrgs(o || []);
+        const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path,sort').like('path', `${ROOT_PATH}/%`);
+        setOrgs(treeSort(o || []));
         const { data: sd } = await supabase.rpc('site_stats');
         if (sd) setSt(sd);
       } catch (err) {

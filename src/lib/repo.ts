@@ -69,3 +69,21 @@ export async function fileLink(sb: any, f: { bucket: string; file_key: string },
 }
 
 export const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+// Orders orgs as a tree: parents before children, siblings by their "sort" value, then by name.
+export function treeSort<T extends { path: string; sort?: number; name_ar: string }>(list: T[]): T[] {
+  const by = new Map(list.map(o => [o.path, o]));
+  const key = (o: T) => {
+    const parts = o.path.split('/'); const k: string[] = [];
+    for (let i = 1; i <= parts.length; i++) {
+      const a = by.get(parts.slice(0, i).join('/'));
+      k.push(String(a?.sort ?? 100).padStart(5, '0') + (a?.name_ar || parts[i - 1]));
+    }
+    return k;
+  };
+  return [...list].sort((x, y) => {
+    const a = key(x), b = key(y);
+    for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1;
+    return a.length - b.length;
+  });
+}

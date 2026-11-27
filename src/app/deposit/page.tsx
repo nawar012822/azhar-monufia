@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { ROOT_PATH } from '@/lib/constants';
-import { loadAccess, Access } from '@/lib/repo';
+import { loadAccess, Access, treeSort } from '@/lib/repo';
 import { ArrowRight, Upload, CheckCircle } from 'lucide-react';
 
 
@@ -34,11 +34,11 @@ export default function DepositPage() {
       const a = await loadAccess(supabase);
       setAccess(a);
       if (a.userId && a.canUpload) {
-        const { data: all } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').like('path', `${ROOT_PATH}/%`).order('path');
+        const { data: all } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path,sort').like('path', `${ROOT_PATH}/%`);
         const { data: mine } = await supabase.from('orgs').select('id,path').in('id', a.memberships.map(m => m.org_id).concat([-1]));
         const mp = (mine || []).map((o: any) => o.path);
         const ok = (all || []).filter((o: any) => o.kind === 'department' && (a.isSuper || mp.some((p: string) => o.path === p || o.path.startsWith(p + '/'))));
-        setDepts(ok);
+        setDepts(treeSort(ok));
         const { data: cs } = await supabase.from('collections').select('id,org_id,slug,name_ar').order('sort');
         setColls(cs || []);
         if (ok[0]) setForm(f => ({ ...f, department: String(ok[0].id) }));

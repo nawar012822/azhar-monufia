@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { COLLECTIONS, ROOT_PATH } from '@/lib/constants';
-import { loadAccess, Access, ITEM_SELECT, flat, ROLE_AR, STATUS_AR, ACCESS_AR, slugify } from '@/lib/repo';
+import { loadAccess, Access, treeSort, ITEM_SELECT, flat, ROLE_AR, STATUS_AR, ACCESS_AR, slugify } from '@/lib/repo';
 import MembersPanel from '@/components/MembersPanel';
 import { ShieldAlert, Search, Trash2, CheckCircle, XCircle, Eye, Download } from 'lucide-react';
 
@@ -43,8 +43,8 @@ export default function DashboardPage() {
     if (!a.userId) { router.push('/login'); return; }
     setAccess(a);
     if (a.canReview || a.best >= 3) {
-      const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`).order('path');
-      setOrgs(o || []);
+      const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path,sort').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`);
+      setOrgs(treeSort(o || []));
       const { data: it } = await supabase.from('items').select(ITEM_SELECT).order('created_at', { ascending: false }).limit(300);
       setItems((it || []).map(flat));
     }
