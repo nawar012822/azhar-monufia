@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 export default async function ItemPage({ params }: { params: { id: string } }) {
   if (!/^\d+$/.test(params.id)) notFound();
   const item = await getItem(params.id);
+  if (!item) { const { data: ex } = await serverClient().rpc('item_exists', { p_id: Number(params.id) }); if (ex === false) notFound(); }
   const similar = item ? await getSimilar(String(item.id), (item as any).collection_id, (item as any).org_id) : [];
   const ld = item ? itemJsonLd(item, await hasFileFor(params.id)) : null;
   return (<>

@@ -38,6 +38,7 @@ export default function DashboardPage() {
     return orgs.filter(o => mine.some(p => o.path === p || o.path.startsWith(p + '/')));
   }, [access, orgs]);
 
+  const [stats, setStats] = useState<any>(null);
   const load = async () => {
     const a = await loadAccess(supabase);
     if (!a.userId) { router.push('/login'); return; }
@@ -47,6 +48,8 @@ export default function DashboardPage() {
       setOrgs(treeSort(o || []));
       const { data: it } = await supabase.from('items').select(ITEM_SELECT).order('created_at', { ascending: false }).limit(300);
       setItems((it || []).map(flat));
+      const { data: st } = await supabase.rpc('dashboard_stats');
+      if (st) setStats(st as any);
     }
     setLoading(false);
   };
@@ -100,10 +103,11 @@ export default function DashboardPage() {
 
   const shown = items.filter(i => (i.title || '').includes(q) || (i.author || '').includes(q));
   const pending = shown.filter(i => i.status === 'pending');
-  const total = items.length, published = items.filter(i => i.status === 'approved').length;
-  const views = items.reduce((s, i) => s + (i.views || 0), 0), downloads = items.reduce((s, i) => s + (i.downloads || 0), 0);
-  const byColl: Record<string, number> = {}; items.forEach(i => { byColl[i.collection] = (byColl[i.collection] || 0) + 1; });
-  const top = [...items].sort((a, b) => b.views - a.views).slice(0, 5);
+  const total = stats?.total ?? items.length, published = stats?.approved ?? items.filter(i => i.status === 'approved').length;
+  const pendingCount = stats?.pending ?? items.filter(i => i.status === 'pending').length;
+  const views = stats?.views ?? items.reduce((s, i) => s + (i.views || 0), 0), downloads = stats?.downloads ?? items.reduce((s, i) => s + (i.downloads || 0), 0);
+  const byColl: Record<string, number> = stats?.by_collection ?? (() => { const m: Record<string, number> = {}; items.forEach(i => { m[i.collection] = (m[i.collection] || 0) + 1; }); return m; })();
+  const top: any[] = stats?.top ?? [...items].sort((a, b) => b.views - a.views).slice(0, 5);
   const tabs: [Tab, string][] = [['review', `صندوق المراجعة${pending.length ? ` (${pending.length})` : ''}`], ['materials', 'كل المواد']];
   if (canAdmin) tabs.push(['members', 'الأعضاء'], ['structure', 'الكليات والأقسام'], ['stats', 'الإحصائيات']);
   const label = access.isSuper ? 'المدير العام' : access.best >= 3 ? 'مدير' : 'مراجع';
@@ -122,7 +126,7 @@ export default function DashboardPage() {
 
       <div className="max-w-5xl mx-auto px-4 -mt-6 relative z-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {([['بانتظار المراجعة', items.filter(i => i.status === 'pending').length, 'text-amber-600'], ['منشورة', published, 'text-emerald-700'], ['كل المواد', total, 'text-[#1B4D3E]'], ['المشاهدات', views, 'text-sky-700']] as [string, number, string][]).map(([l, n, c]) => (
+          {([['بانتظار المراجعة', pendingCount, 'text-amber-600'], ['منشورة', published, 'text-emerald-700'], ['كل المواد', total, 'text-[#1B4D3E]'], ['المشاهدات', views, 'text-sky-700']] as [string, number, string][]).map(([l, n, c]) => (
             <div key={l} className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 text-center fade-up">
               <span className={`block text-2xl md:text-3xl font-bold font-serif ${c}`}>{n.toLocaleString('ar-EG')}</span>
               <span className="text-xs md:text-sm text-gray-500 font-bold">{l}</span>
@@ -219,7 +223,7 @@ export default function DashboardPage() {
         {tab === 'stats' && canAdmin && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[['كل المواد', total], ['منشورة', published], ['قيد المراجعة', items.filter(i => i.status === 'pending').length]].map(([t, n]) => (
+              {[['كل المواد', total], ['منشورة', published], ['قيد المراجعة', pendingCount]].map(([t, n]) => (
                 <div key={t as string} className="bg-white p-6 rounded-2xl border text-center"><span className="text-4xl font-bold text-[#1B4D3E]">{n}</span><p className="text-gray-500 font-bold mt-2">{t}</p></div>
               ))}
               <div className="bg-white p-6 rounded-2xl border text-center"><div className="flex justify-center items-center gap-2 text-2xl font-bold text-gray-700"><Eye className="w-6 h-6 text-gray-400" /> {views}</div><p className="text-gray-500 font-bold mt-2">المشاهدات</p></div>
