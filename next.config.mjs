@@ -17,6 +17,9 @@ const csp = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  async redirects() {
+    return [{ source: '/:path*', has: [{ type: 'host', value: 'azhar-monufia.vercel.app' }], destination: 'https://azhar-repo.vercel.app/:path*', permanent: false }];
+  },
   async headers() {
     return [{ source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache' }, { key: 'Service-Worker-Allowed', value: '/' }] }, {
       source: '/:path*',

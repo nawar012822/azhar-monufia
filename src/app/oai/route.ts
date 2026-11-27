@@ -45,8 +45,8 @@ export async function GET(request: Request) {
   if (!verb || !known.includes(verb)) return wrap(url, verb, '', ['badVerb', 'Illegal or missing verb']);
 
   if (verb === 'Identify') {
-    const { data } = await sb.from('items').select('created_at').eq('status', 'approved').order('created_at').limit(1);
-    return wrap(url, verb, `<Identify><repositoryName>المستودع الرقمي - كلية اللغة العربية بالمنوفية</repositoryName><baseURL>${SITE_URL}/oai</baseURL><protocolVersion>2.0</protocolVersion><adminEmail>noreply@${HOST}</adminEmail><earliestDatestamp>${iso(data?.[0]?.created_at || '2026-01-01')}</earliestDatestamp><deletedRecord>no</deletedRecord><granularity>YYYY-MM-DDThh:mm:ssZ</granularity></Identify>`);
+    const { data } = await sb.from('items').select('created_at,updated_at').eq('status', 'approved').order('updated_at').limit(1);
+    return wrap(url, verb, `<Identify><repositoryName>المستودع الرقمي - كلية اللغة العربية بالمنوفية</repositoryName><baseURL>${SITE_URL}/oai</baseURL><protocolVersion>2.0</protocolVersion><adminEmail>noreply@${HOST}</adminEmail><earliestDatestamp>${iso(data?.[0]?.updated_at || data?.[0]?.created_at || '2026-01-01')}</earliestDatestamp><deletedRecord>no</deletedRecord><granularity>YYYY-MM-DDThh:mm:ssZ</granularity></Identify>`);
   }
   if (verb === 'ListMetadataFormats')
     return wrap(url, verb, `<ListMetadataFormats><metadataFormat><metadataPrefix>oai_dc</metadataPrefix><schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema><metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace></metadataFormat></ListMetadataFormats>`);
@@ -70,7 +70,12 @@ export async function GET(request: Request) {
     catch { return wrap(url, verb, '', ['badResumptionToken', 'Invalid token']); }
   } else if (q.get('metadataPrefix') !== 'oai_dc') return wrap(url, verb, '', ['cannotDisseminateFormat', 'Only oai_dc is supported']);
   let qb = sb.from('items').select(SEL, { count: 'exact' }).eq('status', 'approved').order('id').range(offset, offset + PAGE - 1);
-  if (from) qb = qb.gte('created_at', from); if (until) qb = qb.lte('created_at', until);
+  const okDate = (d: string) => /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?$/.test(d) && !isNaN(Date.parse(d));
+  if ((from && !okDate(from)) || (until && !okDate(until))) return wrap(url, verb, '', ['badArgument', 'from/until must be YYYY-MM-DD or YYYY-MM-DDThh:mm:ssZ']);
+  if (from && until && from.length !== until.length) return wrap(url, verb, '', ['badArgument', 'from and until must use the same granularity']);
+  // datestamps in headers are updated_at, so the selective-harvest filter must use updated_at too
+  const upper = (u: string) => (u.length === 10 ? u + 'T23:59:59Z' : u);
+  if (from) qb = qb.gte('updated_at', from); if (until) qb = qb.lte('updated_at', upper(until));
   if (set) { const { data: c } = await sb.from('collections').select('id').eq('slug', set).maybeSingle(); if (!c) return wrap(url, verb, '', ['noRecordsMatch', 'Unknown set']); qb = qb.eq('collection_id', c.id); }
   const { data, count } = await qb;
   if (!data?.length) return wrap(url, verb, '', ['noRecordsMatch', 'No records']);

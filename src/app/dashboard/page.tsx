@@ -46,8 +46,13 @@ export default function DashboardPage() {
     if (a.canReview || a.best >= 3) {
       const { data: o } = await supabase.from('orgs').select('id,parent_id,kind,name_ar,path,sort').or(`path.eq.${ROOT_PATH},path.like.${ROOT_PATH}/%`);
       setOrgs(treeSort(o || []));
-      const { data: it } = await supabase.from('items').select(ITEM_SELECT).order('created_at', { ascending: false }).limit(300);
-      setItems((it || []).map(flat));
+      const all: any[] = [];
+      for (let from = 0; from < 20000; from += 500) {
+        const { data: it } = await supabase.from('items').select(ITEM_SELECT).order('created_at', { ascending: false }).order('id', { ascending: false }).range(from, from + 499);
+        all.push(...(it || []));
+        if (!it || it.length < 500) break;
+      }
+      setItems(all.map(flat));
       const { data: st } = await supabase.rpc('dashboard_stats');
       if (st) setStats(st as any);
     }

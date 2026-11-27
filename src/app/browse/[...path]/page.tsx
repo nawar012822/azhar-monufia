@@ -44,19 +44,32 @@ export default function BrowsePage() {
     })();
   }, [path]);
 
+  const PAGE = 50;
+  const [more, setMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const fetchPage = async (offset: number) => {
+    const { data: ids } = await supabase.rpc('search_in', { p_org: org.id, p_q: q, p_collection: coll, p_limit: PAGE, p_offset: offset });
+    const list = (ids || []).map((r: any) => r.id);
+    if (list.length === 0) return { rows: [] as any[], full: false };
+    const { data } = await supabase.from('items').select(ITEM_SELECT).in('id', list);
+    const order = new Map<number, number>(list.map((id: number, i: number) => [id, i]));
+    return { rows: (data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)), full: list.length === PAGE && offset + PAGE < 1000 };
+  };
   useEffect(() => {
     if (!org) return;
     (async () => {
       setLoading(true);
-      const { data: ids } = await supabase.rpc('search_in', { p_org: org.id, p_q: q, p_collection: coll, p_limit: 50, p_offset: 0 });
-      const list = (ids || []).map((r: any) => r.id);
-      if (list.length === 0) { setItems([]); setLoading(false); return; }
-      const { data } = await supabase.from('items').select(ITEM_SELECT).in('id', list);
-      const order = new Map<number, number>(list.map((id: number, i: number) => [id, i]));
-      setItems((data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)));
-      setLoading(false);
+      const r = await fetchPage(0);
+      setItems(r.rows); setMore(r.full); setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [org, q, coll]);
+  const loadMore = async () => {
+    setLoadingMore(true);
+    const r = await fetchPage(items.length);
+    setItems(prev => { const seen = new Set(prev.map((x: any) => x.id)); return [...prev, ...r.rows.filter((x: any) => !seen.has(x.id))]; });
+    setMore(r.full); setLoadingMore(false);
+  };
 
   if (missing) return <main className="flex-1 flex items-center justify-center bg-[#F8F6F0] text-xl" dir="rtl">هذه الصفحة غير موجودة. <Link href="/" className="underline mr-2">الرئيسية</Link></main>;
 
@@ -116,6 +129,9 @@ export default function BrowsePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {items.map(item => <ItemCard key={item.id} item={item} />)}
           </div>
+        )}
+        {!loading && more && (
+          <div className="text-center mt-8"><button onClick={loadMore} disabled={loadingMore} className="px-8 py-3 rounded-xl bg-[#1B4D3E] text-white font-bold disabled:opacity-50">{loadingMore ? 'جارٍ التحميل...' : 'عرض المزيد'}</button></div>
         )}
       </div>
     </main>
