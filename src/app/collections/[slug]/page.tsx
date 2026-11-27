@@ -5,13 +5,14 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { flat } from '@/lib/repo';
+import { COLLECTIONS } from '@/lib/constants';
 import { ArrowRight, BookOpen, User, Eye } from 'lucide-react';
 
 export default function CollectionPage() {
   const params = useParams();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [collectionName, setCollectionName] = useState('');
+  const [collectionName, setCollectionName] = useState(() => COLLECTIONS.find(c => c.slug === decodeURIComponent(String((params as any).slug || '')))?.name || '');
 
   useEffect(() => {
     if (params.slug) {
@@ -20,7 +21,7 @@ export default function CollectionPage() {
         try {
           const { data, error } = await supabase.from('items')
             .select('id,created_at,title,author,abstract,access,status,collections!inner(slug,name_ar),orgs(name_ar,path),item_stats(views)')
-            .eq('status', 'approved').eq('collections.slug', slug).order('created_at', { ascending: false }).limit(200);
+            .eq('status', 'approved').eq('collections.slug', slug).order('created_at', { ascending: false }).limit(1000);
           if (error) throw error;
           const rows = (data || []).map(flat);
           setItems(rows);

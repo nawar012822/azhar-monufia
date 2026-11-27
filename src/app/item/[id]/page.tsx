@@ -5,6 +5,7 @@ import { ITEM_SELECT, flat } from '@/lib/repo';
 import { notFound } from 'next/navigation';
 import ItemView from '@/components/ItemView';
 import { SITE_URL } from '@/lib/constants';
+import Link from 'next/link';
 import { itemJsonLd, citationMeta } from '@/lib/scholarly';
 
 export const revalidate = 60;
@@ -19,6 +20,11 @@ const getItem = cache(async (id: string) => {
 const hasFileFor = cache(async (id: string) => {
   const { data } = await serverClient().from('item_files').select('file_key').eq('item_id', id).maybeSingle();
   return !!data;
+});
+
+const getSimilar = cache(async (id: string, collectionId: number, orgId: number) => {
+  const { data } = await serverClient().from('items').select('id,title,author').eq('status', 'approved').eq('collection_id', collectionId).eq('org_id', orgId).neq('id', id).order('created_at', { ascending: false }).limit(6);
+  return data || [];
 });
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -37,9 +43,20 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 export default async function ItemPage({ params }: { params: { id: string } }) {
   if (!/^\d+$/.test(params.id)) notFound();
   const item = await getItem(params.id);
+  const similar = item ? await getSimilar(String(item.id), (item as any).collection_id, (item as any).org_id) : [];
   const ld = item ? itemJsonLd(item, await hasFileFor(params.id)) : null;
   return (<>
     {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, '\\u003c') }} />}
     <ItemView initialItem={item} id={params.id} />
+    {similar.length > 0 && (
+      <section dir="rtl" className="max-w-4xl mx-auto px-4 pb-12">
+        <h2 className="text-lg font-bold text-[#1B4D3E] mb-3 font-serif">مواد مشابهة</h2>
+        <ul className="grid md:grid-cols-2 gap-3">
+          {similar.map((s: any) => (
+            <li key={s.id}><Link href={`/item/${s.id}`} className="block bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition"><span className="font-bold text-[#1B4D3E]">{s.title}</span>{s.author && <span className="block text-sm text-gray-500 mt-1">{s.author}</span>}</Link></li>
+          ))}
+        </ul>
+      </section>
+    )}
   </>);
 }

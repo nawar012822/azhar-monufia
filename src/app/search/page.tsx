@@ -17,6 +17,10 @@ function SearchContent() {
   const [query, setQuery] = useState(initialQuery);
   const [collection, setCollection] = useState('');
   const [department, setDepartment] = useState('');
+  const [lang, setLang] = useState('');
+  const [yFrom, setYFrom] = useState('');
+  const [yTo, setYTo] = useState('');
+  const [lic, setLic] = useState('');
   const [orgList, setOrgList] = useState<any[]>([]);
   const [collMap, setCollMap] = useState<Record<string, number>>({});
   useEffect(() => {
@@ -35,7 +39,7 @@ function SearchContent() {
     
     const root = orgList.find(o => o.id === Number(department)) || orgList.find(o => o.path === ROOT_PATH);
     if (!root) { setError(true); setResults([]); setLoading(false); return; }
-    const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: 50, p_offset: 0 });
+    const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: 50, p_offset: 0, p_lang: lang || null, p_year_from: yFrom ? Number(yFrom) : null, p_year_to: yTo ? Number(yTo) : null, p_license: lic || null });
     if (e1) { setError(true); setResults([]); setLoading(false); return; }
     const list = (ids || []).map((r: any) => r.id);
     if (list.length === 0) { setResults([]); setLoading(false); return; }
@@ -82,6 +86,37 @@ function SearchContent() {
               <select aria-label="القسم" value={department} onChange={e => setDepartment(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
                 <option value="">كل الأقسام</option>
                 {orgList.filter(o => o.kind !== 'university').map(d => <option key={d.id} value={d.id}>{'— '.repeat(Math.max(0, d.path.split('/').length - 2))}{d.name_ar}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-bold mb-2">اللغة</label>
+              <select aria-label="اللغة" value={lang} onChange={e => setLang(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
+                <option value="">كل اللغات</option>
+                <option value="العربية">العربية</option>
+                <option value="الإنجليزية">الإنجليزية</option>
+                <option value="الفارسية">الفارسية</option>
+                <option value="الفرنسية">الفرنسية</option>
+                <option value="الإندونيسية">الإندونيسية</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">من سنة</label>
+              <input aria-label="من سنة" inputMode="numeric" maxLength={4} value={yFrom} onChange={e => setYFrom(e.target.value.replace(/\D/g, ''))} placeholder="1800" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">إلى سنة</label>
+              <input aria-label="إلى سنة" inputMode="numeric" maxLength={4} value={yTo} onChange={e => setYTo(e.target.value.replace(/\D/g, ''))} placeholder="2025" className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]" />
+            </div>
+            <div>
+              <label className="block text-sm font-bold mb-2">الترخيص</label>
+              <select aria-label="الترخيص" value={lic} onChange={e => setLic(e.target.value)} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]">
+                <option value="">كل التراخيص</option>
+                <option value="pd">ملك عام</option>
+                <option value="cc0">CC0</option>
+                <option value="cc-by">CC BY (نسب المصنف)</option>
+                <option value="nc">غير تجاري (NC)</option>
               </select>
             </div>
           </div>

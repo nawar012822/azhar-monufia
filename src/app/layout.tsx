@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
   metadataBase: new URL(SITE_URL),
+  alternates: { types: { 'application/rss+xml': '/feed.xml' } },
   title: "المستودع الرقمي | جامعة الأزهر - كلية اللغة العربية بالمنوفية",
   description: "أرشيف علمي شامل - جامعة الأزهر",
   openGraph: {
