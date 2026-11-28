@@ -98,13 +98,16 @@ function booksBlock(titles: string[]) {
 // When the day's allowance is gone, answer from the repository itself instead of an error.
 async function repoFallback(question: string, reason: 'user' | 'total' | 'tokens') {
   const q = String(question || '').slice(0, 100).trim();
+  // A grammar question matches almost nothing word by word, so search the way the assistant does:
+  // on "نحو", which returns real grammar books. The visitor's own text still goes into the search link.
+  const searchQ = GRAMMAR_RE.test(q) ? 'نحو' : q;
   const items: Link[] = [];
   try {
     const sb = serverClient();
     const { data: org } = await sb.from('orgs').select('id').eq('path', ROOT_PATH).limit(1).maybeSingle();
-    if (org?.id && q) {
+    if (org?.id && searchQ) {
       const { data: ids } = await sb.rpc('search_in', {
-        p_org: org.id, p_q: q, p_collection: null, p_limit: 3, p_offset: 0,
+        p_org: org.id, p_q: searchQ, p_collection: null, p_limit: 3, p_offset: 0,
         p_lang: null, p_year_from: null, p_year_to: null, p_license: null,
       });
       const list: number[] = (ids || []).map((r: any) => r.id).filter((x: any) => typeof x === 'number');
