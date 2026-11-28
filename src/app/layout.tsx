@@ -40,9 +40,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ar" dir="rtl">
       <body className={`${cairo.variable} ${amiri.variable} font-sans min-h-screen flex flex-col`}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[100] focus:bg-[#1B4D3E] focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold">تخطَّ إلى المحتوى</a>
         <SiteHeader />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'WebSite', name: 'المستودع الرقمي - كلية اللغة العربية بالمنوفية', url: SITE_URL, inLanguage: 'ar', potentialAction: { '@type': 'SearchAction', target: `${SITE_URL}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } }) }} />
-        <div className="flex-1 flex flex-col">{children}</div>
+        <div id="main-content" className="flex-1 flex flex-col">{children}</div>
         <SiteFooter />
         <Toaster />
         <LazyAssistant />
