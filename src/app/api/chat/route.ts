@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 const MAX_MESSAGES = 6;        // short history: keeps each question inside the free tokens-per-minute ceiling
 const MAX_CHARS = 600;
-const DAILY_PER_VISITOR = 1_000_000;  // no real per-visitor limit (his decision, 28 Nov); the browser id is still counted for stats
+const DAILY_PER_VISITOR = 30;         // per browser per day (his decision, 28 Nov); after it the visitor gets repository search links
 const DAILY_TOTAL = 250;       // all visitors together per day, sized to the free model quota
 const DAILY_TOKENS = 170_000;  // hard stop before the provider's free 200k tokens/day wall
 const WINDOW_MS = 60_000;
@@ -39,10 +39,11 @@ const SYSTEM_PROMPT = `أنت مساعد المستودع الرقمي لكلي�
 - ابدأ بالإجابة على طول من غير مقدمة.
 
 حقائق الموقع اللي تعرفها (دي بس، ومتقولش غيرها):
-- مفيش حد أقصى لعدد أسئلة الزائر الواحد.
+- كل زائر عنده حد أقصى 30 سؤال في اليوم، والعدّاد مربوط بالمتصفح اللي بيسأل منه.
 - الموقع كله عنده حد أقصى 250 سؤال في اليوم لكل الزوار مع بعض.
 - العدّاد بيبدأ من جديد كل يوم الساعة 12 بالليل بتوقيت مصر.
-- لو حد سأل عن الحدود، قول الرقمين دول ببساطة: مفيش حد للزائر، و250 سؤال للموقع في اليوم.
+- لو الزائر خلّص الـ30 سؤال بتوعه، مش هيقدر يكمل أسئلة، لكن بيلاقي لينكات بحث في المستودع نفسه بدل الرد.
+- لو حد سأل عن الحدود، قول الرقمين دول ببساطة: 30 سؤال للزائر في اليوم، و250 سؤال للموقع كله في اليوم.
 - متوعدش بزيادة الحد، ومتقولش إن الموقع مفتوح بلا حد.
 
 قواعد صارمة:
@@ -118,11 +119,15 @@ async function repoFallback(question: string, reason: 'user' | 'total' | 'tokens
     }
   } catch { /* search is a bonus, never a failure */ }
 
-  const head = 'المساعد واخد راحة دلوقتي لأن حصته اليومية للموقع كله خلصت.';
+  const head = reason === 'user'
+    ? 'وصلت للحد اليومي بتاعك، وهو 30 سؤال في اليوم.'
+    : 'المساعد واخد راحة دلوقتي لأن حصته اليومية للموقع كله خلصت.';
   const search: Link = q ? { label: 'ابحث في المستودع', href: `/search?q=${encodeURIComponent(q)}` } : { label: 'ابحث في المستودع', href: '/search' };
   const reply = items.length
     ? `${head} بس مش هسيبك من غير حاجة، دي أقرب نتايج من المستودع نفسه:`
-    : `${head} تقدر تدوّر بنفسك في المستودع من اللينك ده، وترجع لي بكرة بإذن الله.`;
+    : reason === 'user'
+      ? `${head} تقدر تدوّر بنفسك في المستودع من اللينك ده، والعدّاد بيرجع بكرة بإذن الله.`
+      : `${head} تقدر تدوّر بنفسك في المستودع من اللينك ده، وترجع لي بكرة بإذن الله.`;
   return NextResponse.json({ reply, links: items.length ? [...items, search] : [search], fallback: true });
 }
 
