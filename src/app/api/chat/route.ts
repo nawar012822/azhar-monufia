@@ -185,7 +185,8 @@ export async function POST(req: Request) {
   const question = messages[messages.length - 1].content;
 
   // Daily quota, taken only for a valid question. One atomic database call shared by all server instances.
-  // A missing or wrong secret stops the request (never a silent bypass). Only a real database outage lets it through.
+  // A missing or wrong secret stops the request, and so does a database outage: the limit is never
+  // bypassed silently (fixed 28 Nov after the review found this path let questions through).
   const quotaSecret = process.env.CHAT_QUOTA_SECRET;
   if (!quotaSecret) return NextResponse.json({ reply: 'المساعد غير متاح حالياً (إعداد الحد اليومي ناقص).' }, { status: 503 });
   try {
@@ -197,12 +198,17 @@ export async function POST(req: Request) {
       p_secret: quotaSecret, p_key: key,
       p_user_cap: DAILY_PER_VISITOR, p_total_cap: DAILY_TOTAL, p_token_cap: DAILY_TOKENS,
     });
-    if (!qErr) {
-      if (q === 'user' || q === 'total' || q === 'tokens') return repoFallback(question, q);
-      if (q === 'denied') return NextResponse.json({ reply: 'المساعد غير متاح حالياً (خطأ في إعداد الحد اليومي).' }, { status: 503 });
-      if (q !== 'ok') return NextResponse.json({ reply: 'المساعد غير متاح حالياً.' }, { status: 503 });
-    } // qErr = database outage: let the question through (the per-minute limit still applies)
-  } catch { /* database outage: let the question through */ }
+    if (qErr) {
+      console.error('quota check failed', qErr.message);
+      return NextResponse.json({ reply: 'المساعد غير متاح دلوقتي، جرّب تاني بعد شوية.' }, { status: 503 });
+    }
+    if (q === 'user' || q === 'total' || q === 'tokens') return repoFallback(question, q);
+    if (q === 'denied') return NextResponse.json({ reply: 'المساعد غير متاح حالياً (خطأ في إعداد الحد اليومي).' }, { status: 503 });
+    if (q !== 'ok') return NextResponse.json({ reply: 'المساعد غير متاح حالياً.' }, { status: 503 });
+  } catch (e) {
+    console.error('quota check threw', e);
+    return NextResponse.json({ reply: 'المساعد غير متاح دلوقتي، جرّب تاني بعد شوية.' }, { status: 503 });
+  }
 
   try {
     const ctrl = new AbortController();

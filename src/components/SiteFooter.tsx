@@ -9,7 +9,7 @@ export default function SiteFooter() {
           <p className="text-gray-300 leading-relaxed">جامعة الأزهر - كلية اللغة العربية بالمنوفية. حفظ الإنتاج العلمي وإتاحته للطلاب والباحثين.</p>
         </div>
         <nav aria-label="روابط" className="grid grid-cols-2 gap-x-6 gap-y-1 content-start">
-          {[['/', 'الرئيسية'], ['/search', 'البحث المتقدم'], ['/my-library', 'مكتبتي'], ['/about', 'عن المستودع'], ['/policies', 'سياسة الاستخدام'], ['/contact', 'اتصل بنا']].map(([h, t]) => (
+          {[['/', 'الرئيسية'], ['/search', 'البحث المتقدم'], ['/my-library', 'مكتبتي'], ['/about', 'عن المستودع'], ['/policies', 'سياسة الاستخدام'], ['/privacy', 'الخصوصية'], ['/contact', 'اتصل بنا']].map(([h, t]) => (
             <Link key={h} href={h} className="py-2 text-gray-200 hover:text-[#D4AF37] transition">{t}</Link>
           ))}
         </nav>

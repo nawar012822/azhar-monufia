@@ -97,9 +97,19 @@ export default function DepositPage() {
       notify(direct ? 'تم النشر مباشرة 🎉' : 'تم الإيداع بنجاح وسيتم مراجعته! 🎉');
       router.push('/profile');
     } catch (error: any) {
-      if (newItemId) await supabase.from('items').delete().eq('id', newItemId);
-      if (key) await supabase.storage.from('files').remove([key]);
-      notify('حدث خطأ: ' + error.message);
+      // Undo a half-finished deposit without ever losing the uploaded file.
+      // The owner can only delete a draft or pending item (RLS), so a directly published item
+      // may survive the delete; in that case the PDF must stay in storage.
+      let itemGone = true;
+      if (newItemId) {
+        const { data: deleted, error: delErr } = await supabase.from('items').delete().eq('id', newItemId).select('id');
+        itemGone = !delErr && Array.isArray(deleted) && deleted.length > 0;
+        if (!itemGone) console.error('deposit cleanup: item survived delete', newItemId, delErr?.message || '');
+      }
+      if (key && itemGone) await supabase.storage.from('files').remove([key]);
+      notify(itemGone
+        ? 'حدث خطأ: ' + error.message
+        : 'حصل خطأ بعد إنشاء المادة، والملف محفوظ في التخزين. ابعت رقم المادة ' + newItemId + ' للإدارة لربط الملف بها.');
     } finally {
       setUploading(false);
     }
