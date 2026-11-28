@@ -168,7 +168,10 @@ export async function POST(req: Request) {
         model: 'openai/gpt-oss-120b',
         messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages],
         temperature: 0.4,
-        max_tokens: 450,
+        max_tokens: 600,
+        // gpt-oss spends part of the token budget on hidden reasoning; low effort keeps short
+        // answers from coming back empty (which used to surface as "try again later").
+        reasoning_effort: 'low',
       }),
       signal: ctrl.signal,
     });
