@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 import { serverClient } from '@/lib/supabase';
 import { ROOT_PATH } from '@/lib/constants';
+import { knowledgeFor } from '@/lib/assistantKnowledge';
 
 export const runtime = 'nodejs';
 
@@ -271,7 +272,7 @@ export async function POST(req: Request) {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'openai/gpt-oss-120b',
-        messages: [{ role: 'system', content: SYSTEM_PROMPT + booksBlock(await repoBooks(question)) }, ...messages],
+        messages: [{ role: 'system', content: SYSTEM_PROMPT + '\n\n' + knowledgeFor(question) + booksBlock(await repoBooks(question)) }, ...messages],
         temperature: 0.4,
         max_tokens: 600,
         // gpt-oss spends part of the token budget on hidden reasoning; low effort keeps short
