@@ -9,6 +9,7 @@ export const runtime = 'nodejs';
 const MAX_MESSAGES = 6;        // short history: keeps each question inside the free tokens-per-minute ceiling
 const MAX_CHARS = 600;
 const DAILY_PER_VISITOR = 30;         // per browser per day (his decision, 28 Nov); after it the visitor gets repository search links
+const DAILY_PER_NETWORK = 90;   // per network address per day: stops one person minting endless browser ids (3 browsers' worth, for shared campus Wi-Fi)
 const DAILY_TOTAL = 250;       // all visitors together per day, sized to the free model quota
 const DAILY_TOKENS = 170_000;  // hard stop before the provider's free 200k tokens/day wall
 const WINDOW_MS = 60_000;
@@ -295,9 +296,10 @@ export async function POST(req: Request) {
     // Rough estimate: system prompt, the question, and the answer ceiling.
     const promptChars = messages.reduce((n: number, m: any) => n + m.content.length, 0);
     reserved = Math.min(20_000, 1_200 + Math.ceil(promptChars / 2) + 600);
-    const { data: q, error: qErr } = await serverClient().rpc('chat_reserve', {
-      p_secret: quotaSecret, p_key: key, p_tokens: reserved,
-      p_user_cap: DAILY_PER_VISITOR, p_total_cap: DAILY_TOTAL, p_token_cap: DAILY_TOKENS,
+    const ipKey = ip && ip !== 'unknown' ? createHash('sha256').update('ip:' + ip + ':' + quotaSecret).digest('hex').slice(0, 32) : null;
+    const { data: q, error: qErr } = await serverClient().rpc('chat_reserve_ip', {
+      p_secret: quotaSecret, p_key: key, p_ip_key: ipKey, p_tokens: reserved,
+      p_user_cap: DAILY_PER_VISITOR, p_total_cap: DAILY_TOTAL, p_token_cap: DAILY_TOKENS, p_ip_cap: DAILY_PER_NETWORK,
     });
     if (qErr) {
       reserved = 0;
