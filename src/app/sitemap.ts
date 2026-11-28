@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (page.length < 1000) break;
   }
 
-  const fixed = ['', '/search', '/about', '/contact', '/policies', '/my-library'].map((p) => ({ url: `${SITE_URL}${p}` }));
+  const fixed = ['', '/search', '/about', '/contact', '/policies'].map((p) => ({ url: `${SITE_URL}${p}` }));
   const cols = COLLECTIONS.map((c) => ({ url: `${SITE_URL}/collections/${c.slug}` }));
   const { data: orgs } = await sb.from('orgs').select('path').neq('kind', 'university');
   const depts = (orgs || []).map((o: any) => ({ url: `${SITE_URL}/browse/${o.path}` }));
