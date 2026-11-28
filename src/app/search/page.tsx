@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import ItemCard from '@/components/ItemCard';
 import { useSearchParams } from 'next/navigation';
@@ -36,7 +36,10 @@ function SearchContent() {
   const [offset, setOffset] = useState(0);
   const [more, setMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const seq = useRef(0);
   const executeSearch = async (searchQuery: string, from = 0) => {
+    const my = ++seq.current;
+    const stale = () => my !== seq.current;
     const append = from > 0;
     setError(false);
     if (append) setLoadingMore(true); else { setLoading(true); setMore(false); setOffset(0); }
@@ -45,11 +48,13 @@ function SearchContent() {
     const root = orgList.find(o => o.id === Number(department)) || orgList.find(o => o.path === ROOT_PATH);
     if (!root) { setError(true); setResults([]); setLoading(false); setLoadingMore(false); return; }
     const { data: ids, error: e1 } = await supabase.rpc('search_in', { p_org: root.id, p_q: searchQuery.slice(0, 100), p_collection: collection ? collMap[collection] ?? null : null, p_limit: PAGE, p_offset: from, p_lang: lang || null, p_year_from: yFrom ? Number(yFrom) : null, p_year_to: yTo ? Number(yTo) : null, p_license: lic || null });
+    if (stale()) return;
     if (e1) { setError(true); if (!append) setResults([]); setLoading(false); setLoadingMore(false); return; }
     const list = (ids || []).map((r: any) => r.id);
     setMore(list.length === PAGE && from + PAGE < 1000); setOffset(from + list.length);
     if (list.length === 0) { if (!append) setResults([]); setLoading(false); setLoadingMore(false); return; }
     const { data, error } = await supabase.from('items').select(ITEM_SELECT).in('id', list);
+    if (stale()) return;
     const order = new Map<number, number>(list.map((id: number, i: number) => [id, i]));
     if (error) { setError(true); if (!append) setResults([]); } else { const page = (data || []).map(flat).sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)); setResults(prev => append ? [...prev, ...page.filter((x: any) => !prev.some((y: any) => y.id === x.id))] : page); }
     setLoading(false); setLoadingMore(false);

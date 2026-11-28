@@ -159,10 +159,10 @@ function cleanReply(text: string) {
   return String(text || '')
     .replace(/https?:\/\/\S+/gi, '')
     .replace(/\bwww\.\S+/gi, '')
-    .split(/\s+/)
-    .filter((w) => !(TLD_RE.test(w) && /^[a-z0-9.-]+(\/|$)/i.test(w)))
-    .join(' ')
-    .replace(/[ \t]{2,}/g, ' ')
+    .split('\n')
+    .map((line) => line.split(/[ \t]+/).filter((w) => !(TLD_RE.test(w) && /^[a-z0-9.-]+(\/|$)/i.test(w))).join(' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 

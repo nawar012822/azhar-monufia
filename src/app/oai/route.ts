@@ -28,7 +28,7 @@ ${err ? `<error code="${err[0]}">${xml(err[1])}</error>` : body}
   return new Response(out, { headers: { 'content-type': 'text/xml; charset=utf-8', 'cache-control': 'public, max-age=300' } });
 }
 
-const col = (r: any) => (Array.isArray(r.collections) ? r.collections[0] : r.collections)?.slug || 'books';
+const col = (r: any) => (Array.isArray(r.collections) ? r.collections[0] : r.collections)?.slug || 'uncategorized';
 const header = (r: any) => `<header><identifier>${oid(r.id)}</identifier><datestamp>${iso(r.updated_at || r.created_at)}</datestamp><setSpec>${xml(col(r))}</setSpec></header>`;
 function record(r: any) {
   const kw = (r.keywords || '').split(/[,،]/).map((x: string) => x.trim()).filter(Boolean);

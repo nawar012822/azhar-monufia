@@ -1,5 +1,5 @@
 // Service worker: offline shell. Never caches API or storage calls.
-const VERSION = 'azhar-v1';
+const VERSION = 'azhar-v2';
 const STATIC = VERSION + '-static';
 const PAGES = VERSION + '-pages';
 const SHELL = ['/offline', '/icon-192.png', '/logo.jpg'];
@@ -35,7 +35,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          if (res.ok && !/^\/(dashboard|login|register|forgot-password|profile|deposit)/.test(url.pathname)) {
+          if (res.ok && !/^\/(dashboard|login|register|forgot-password|profile|deposit|my-library|admin)/.test(url.pathname)) {
             const copy = res.clone();
             caches.open(PAGES).then((c) => c.put(req, copy));
           }

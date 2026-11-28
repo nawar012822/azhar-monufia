@@ -68,6 +68,7 @@ export default function DepositPage() {
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return notify('الملف لازم يكون PDF');
     if (file.size > 50 * 1024 * 1024) return notify('حجم الملف أكبر من 50 ميجابايت');
     if (!form.department || !form.collection) return notify('اختر القسم ونوع المادة');
+    if (!/^\d{4}$/.test(String(form.date_issued).trim())) return notify('اكتب سنة النشر من 4 أرقام');
     const head = new Uint8Array(await file.slice(0, 5).arrayBuffer());
     if (String.fromCharCode(...head) !== '%PDF-') return notify('الملف ليس PDF حقيقيا');
 
@@ -205,7 +206,7 @@ export default function DepositPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold mb-2">سنة النشر</label>
-                <input type="number" value={form.date_issued} onChange={e => setForm({...form, date_issued: parseInt(e.target.value)})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]" />
+                <input type="number" value={form.date_issued} onChange={e => setForm({...form, date_issued: e.target.value as any})} className="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#1B4D3E]" />
               </div>
               <div>
                 <label className="block text-sm font-bold mb-2">عدد الصفحات</label>
