@@ -17,7 +17,7 @@ const CORE = `حقائق ثابتة عنك وعن الموقع:
 const SECTIONS: KSection[] = [
   {
     id: 'site_collections',
-    keys: ['اقسام', 'أقسام', 'المستودع فيه', 'فيه ايه', 'موجود ايه', 'الاقسام', 'تصفح', 'كتب', 'رسائل', 'مخطوطات', 'دوريات', 'ببليوغرافيات', 'محاضرات', 'ابحاث', 'مشروعات'],
+    keys: ['اقسام', 'أقسام', 'المستودع فيه', 'فيه ايه', 'موجود ايه', 'الاقسام', 'تصفح', 'كتب', 'كتاب', 'رسائل', 'مخطوطات', 'دوريات', 'ببليوغرافيات', 'محاضرات', 'ابحاث', 'مشروعات', 'كام كتاب', 'عدد الكتب', 'كام مادة', 'المستودع كام', 'كم كتاب'],
     body: `أقسام المستودع وأعدادها (من قاعدة البيانات، 28 نوفمبر 2026):
 الكتب والمراجع 170، الدوريات والمجلات 121، الأبحاث العلمية 75، المخطوطات والتراث 68، الببليوغرافيات 27، المحاضرات والمواد التعليمية 21، الرسائل الجامعية 8، إنتاج أعضاء هيئة التدريس (فاضي حاليًا)، مشروعات الطلاب (فاضي حاليًا). الإجمالي 490 مادة منشورة. التصفح من صفحة الأقسام في الموقع.`,
   },
@@ -151,9 +151,17 @@ function norm(s: string) {
 // a question inside the free plan's token budget.
 export function knowledgeFor(question: string, maxChars = 2000): string {
   const q = norm(question);
+  const tokens = q.split(' ').filter((w) => w.length >= 3);
   const scored = SECTIONS
-    .map((s) => ({ s, n: s.keys.filter((k) => q.includes(norm(k))).length }))
-    .filter((x) => x.n > 0)
+    .map((s) => {
+      const hay = norm(s.keys.join(' ') + ' ' + s.body.slice(0, 240));
+      let n = s.keys.filter((k) => q.includes(norm(k))).length * 2;
+      // also match the question's own words against the section, so "كام كتاب" reaches
+      // the collections section even when the exact key phrase differs
+      for (const t of tokens) if (hay.includes(t)) n += 1;
+      return { s, n };
+    })
+    .filter((x) => x.n > 1)
     .sort((a, b) => b.n - a.n);
   let out = CORE;
   for (const { s } of scored) {
