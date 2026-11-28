@@ -189,23 +189,40 @@ export async function POST(req: Request) {
   // bypassed silently (fixed 28 Nov after the review found this path let questions through).
   const quotaSecret = process.env.CHAT_QUOTA_SECRET;
   if (!quotaSecret) return NextResponse.json({ reply: 'المساعد غير متاح حالياً (إعداد الحد اليومي ناقص).' }, { status: 503 });
+  // The token estimate is set aside in the database BEFORE the provider call and corrected to the real
+  // cost afterwards (0029), so two questions arriving at the same moment cannot both pass the ceiling.
+  let reserved = 0;
+  const settle = async (used: number) => {
+    if (!reserved) return;
+    try {
+      await serverClient().rpc('chat_settle', { p_secret: quotaSecret, p_reserved: reserved, p_used: used });
+    } catch (e) { console.error('quota settle failed', e); }
+  };
   try {
     // Counted per browser (the widget sends an anonymous id), so a shared campus network is not one visitor.
     const rawId = (req.headers.get('x-visitor-id') || '').trim();
     const visitor = /^[A-Za-z0-9_-]{8,64}$/.test(rawId) ? rawId : 'ip:' + ip;
     const key = createHash('sha256').update(visitor + ':' + quotaSecret).digest('hex').slice(0, 32);
-    const { data: q, error: qErr } = await serverClient().rpc('chat_take2', {
-      p_secret: quotaSecret, p_key: key,
+    // Rough estimate: system prompt, the question, and the answer ceiling.
+    const promptChars = messages.reduce((n: number, m: any) => n + m.content.length, 0);
+    reserved = Math.min(20_000, 1_200 + Math.ceil(promptChars / 2) + 600);
+    const { data: q, error: qErr } = await serverClient().rpc('chat_reserve', {
+      p_secret: quotaSecret, p_key: key, p_tokens: reserved,
       p_user_cap: DAILY_PER_VISITOR, p_total_cap: DAILY_TOTAL, p_token_cap: DAILY_TOKENS,
     });
     if (qErr) {
+      reserved = 0;
       console.error('quota check failed', qErr.message);
       return NextResponse.json({ reply: 'المساعد غير متاح دلوقتي، جرّب تاني بعد شوية.' }, { status: 503 });
     }
-    if (q === 'user' || q === 'total' || q === 'tokens') return repoFallback(question, q);
-    if (q === 'denied') return NextResponse.json({ reply: 'المساعد غير متاح حالياً (خطأ في إعداد الحد اليومي).' }, { status: 503 });
-    if (q !== 'ok') return NextResponse.json({ reply: 'المساعد غير متاح حالياً.' }, { status: 503 });
+    if (q === 'user' || q === 'total' || q === 'tokens') {
+      reserved = 0; // the database already gave the estimate back
+      return repoFallback(question, q);
+    }
+    if (q === 'denied') { reserved = 0; return NextResponse.json({ reply: 'المساعد غير متاح حالياً (خطأ في إعداد الحد اليومي).' }, { status: 503 }); }
+    if (q !== 'ok') { reserved = 0; return NextResponse.json({ reply: 'المساعد غير متاح حالياً.' }, { status: 503 }); }
   } catch (e) {
+    reserved = 0;
     console.error('quota check threw', e);
     return NextResponse.json({ reply: 'المساعد غير متاح دلوقتي، جرّب تاني بعد شوية.' }, { status: 503 });
   }
@@ -232,18 +249,18 @@ export async function POST(req: Request) {
     const data = await response.json();
     if (!response.ok || data.error || !data.choices?.[0]?.message?.content) {
       console.error('groq error', response.status, data?.error?.message);
+      await settle(0); // nothing was spent, give the estimate back
       return NextResponse.json({ reply: 'تعذر الحصول على رد الآن، حاول لاحقاً.' }, { status: 502 });
     }
 
-    // Record what this answer really cost, so the day's token budget reflects reality.
+    // Correct the reservation to what this answer really cost, so the day's budget reflects reality.
     const used = Number(data?.usage?.total_tokens || 0);
-    if (used > 0) {
-      try { await serverClient().rpc('chat_add_tokens', { p_secret: quotaSecret, p_tokens: used }); } catch {}
-    }
+    await settle(used > 0 ? used : reserved);
 
     return NextResponse.json({ reply: data.choices[0].message.content });
   } catch (e) {
     console.error('chat failure', e);
+    await settle(0);
     return NextResponse.json({ reply: 'تعذر الاتصال بخدمة الذكاء الاصطناعي.' }, { status: 502 });
   }
 }
