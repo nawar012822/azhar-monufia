@@ -121,11 +121,11 @@ export default function Home() {
         <h2 className="text-2xl md:text-3xl font-bold text-[#1B4D3E] mb-6 font-serif">تصفح حسب النوع</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {ALL_COLLECTIONS.map((c) => (
-            <Link href={`/collections/${c.id}`} key={c.id} className="group bg-white border border-gray-200 p-5 rounded-2xl hover:shadow-lg hover:-translate-y-0.5 hover:border-[#1B4D3E]/30 transition flex items-center gap-3">
-              <span className="text-3xl w-12 h-12 rounded-xl bg-[#F3EFE3] flex items-center justify-center shrink-0">{c.icon}</span>
-              <span className="min-w-0">
-                <span className="block font-bold text-gray-900 group-hover:text-[#1B4D3E] text-sm md:text-base leading-snug">{c.name}</span>
-                <span className="text-xs text-gray-400">{countOf(c.id).toLocaleString('ar-EG')} مادة</span>
+            <Link href={`/collections/${c.id}`} key={c.id} className="group bg-white border border-gray-200 p-3 sm:p-5 rounded-2xl hover:shadow-lg hover:-translate-y-0.5 hover:border-[#1B4D3E]/30 transition flex items-center gap-2 sm:gap-3">
+              <span className="text-xl sm:text-3xl w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-[#F3EFE3] flex items-center justify-center shrink-0">{c.icon}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-gray-900 group-hover:text-[#1B4D3E] text-[13px] sm:text-sm md:text-base leading-snug [overflow-wrap:anywhere]">{c.name}</span>
+                <span className="text-xs text-gray-400 whitespace-nowrap">{countOf(c.id).toLocaleString('ar-EG')} مادة</span>
               </span>
             </Link>
           ))}
