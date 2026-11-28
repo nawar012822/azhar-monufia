@@ -78,7 +78,16 @@ export default function ResearchAssistantWidget() {
     setMessages(next);
     setLoading(true);
     try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-visitor-id': visitorId() }, body: JSON.stringify({ messages: next.filter(m => m !== WELCOME) }) });
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-visitor-id': visitorId() }, body: JSON.stringify({
+        // Keep the item chips that appeared with earlier answers: a short follow-up like
+        // "مين هي" has to resolve to the book that was offered a moment ago.
+        messages: next.filter((m) => m !== WELCOME).map((m) => ({
+          role: m.role,
+          content: m.links && m.links.length
+            ? m.content + '\n(مواد ظهرت مع الرد: ' + m.links.map((l) => l.label).join('، ') + ')'
+            : m.content,
+        })),
+      }) });
       const d = await r.json().catch(() => ({}));
       // Only same-site links are rendered, and only as plain links: never raw HTML from the model.
       const links: Link[] | undefined = Array.isArray(d.links)

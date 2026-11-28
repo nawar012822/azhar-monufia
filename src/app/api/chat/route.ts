@@ -56,6 +56,7 @@ const SYSTEM_PROMPT = `أنت مساعد المستودع الرقمي لكلي�
 - لو الكلام فيه إهانة لشخص أو جدال: متردش الإهانة، وكمّل بهدوء أو اعرض إنك تساعد في سؤال تاني.
 - في الحالات دي ممنوع تقول "الأفضل تسأل إدارة الكلية"، لأن ده مش سؤال إداري.
 - لو الكلام خارج موضوع المستودع (رياضة، طبخ، برمجة، أخبار): رد قصير مهذب في سطر، وارجع تعرض المساعدة في المستودع.
+- لو سؤال الزائر قصير أو فيه ضمير أو إشارة (مين هي، مين هو، ايه ده، ليه، ازاي، كمّل): استخدم الردود اللي قبله في المحادثة والمواد اللي ظهرت معاها (مكتوبة لك بين قوسين بعد الرد)، وجاوب على السؤال نفسه. متعيدش تعريف نفسك ولا تقول "وضّح طلبك" لو فيه حاجة واضحة في الكلام اللي فات.
 
 قواعد صارمة:
 - المعلومة الإدارية بس (رسوم، مواعيد امتحانات، أسماء إداريين أو عميد، أرقام تليفونات، منح، شروط قبول) اللي مش مكتوبة فوق: قول "مش عندي المعلومة دي، الأفضل تسأل إدارة الكلية". ممنوع تخترع رقم أو قاعدة أو ميزة من دماغك.
@@ -346,8 +347,13 @@ export async function POST(req: Request) {
     await settle(used > 0 ? used : reserved);
 
     // Real item pages from the repository, relative links only, so the site shows its own chips.
-    const links = items.map((i) => ({ label: i.title.slice(0, 60), href: `/item/${i.id}` }));
-    return NextResponse.json({ reply: cleanReply(data.choices[0].message.content), links });
+    // Only items the answer actually names: an unrelated question must not carry random books.
+    const reply = cleanReply(data.choices[0].message.content);
+    const said = normAr(reply);
+    const links = items
+      .filter((i) => said.includes(normAr(i.title).slice(0, 22)))
+      .map((i) => ({ label: i.title.slice(0, 60), href: `/item/${i.id}` }));
+    return NextResponse.json({ reply, links });
   } catch (e) {
     console.error('chat failure', e);
     await settle(0);
