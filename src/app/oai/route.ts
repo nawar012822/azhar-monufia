@@ -65,7 +65,7 @@ export async function GET(request: Request) {
 
   if (verb === 'Identify') {
     const { data } = await sb.from('items').select('created_at,updated_at').eq('status', 'approved').order('updated_at').limit(1);
-    return wrap(url, verb, `<Identify><repositoryName>المستودع الرقمي - كلية اللغة العربية بالمنوفية</repositoryName><baseURL>${SITE_URL}/oai</baseURL><protocolVersion>2.0</protocolVersion><adminEmail>noreply@${HOST}</adminEmail><earliestDatestamp>${iso(data?.[0]?.updated_at || data?.[0]?.created_at || '2026-01-01')}</earliestDatestamp><deletedRecord>no</deletedRecord><granularity>YYYY-MM-DDThh:mm:ssZ</granularity></Identify>`);
+    return wrap(url, verb, `<Identify><repositoryName>المستودع الرقمي - كلية اللغة العربية بالمنوفية</repositoryName><baseURL>${SITE_URL}/oai</baseURL><protocolVersion>2.0</protocolVersion><adminEmail>ahmadnawar012822@gmail.com</adminEmail><earliestDatestamp>${iso(data?.[0]?.updated_at || data?.[0]?.created_at || '2026-01-01')}</earliestDatestamp><deletedRecord>no</deletedRecord><granularity>YYYY-MM-DDThh:mm:ssZ</granularity></Identify>`);
   }
   if (verb === 'ListMetadataFormats' && q.get('identifier')) {
     const id = (q.get('identifier') || '').replace(`oai:${HOST}:`, '');
