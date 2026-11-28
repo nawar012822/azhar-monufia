@@ -3,7 +3,22 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { X, ArrowUp, Sparkles, Copy, Check, RotateCcw } from 'lucide-react';
 
-type Msg = { role: 'user' | 'assistant'; content: string };
+type Link = { label: string; href: string };
+type Msg = { role: 'user' | 'assistant'; content: string; links?: Link[] };
+
+// Anonymous per-browser id, so the daily limit follows the visitor and not the network
+// (a whole campus behind one Wi-Fi would otherwise share a single visitor quota).
+const VID_KEY = 'azhar-visitor-v1';
+function visitorId() {
+  try {
+    let v = localStorage.getItem(VID_KEY);
+    if (!v || !/^[A-Za-z0-9_-]{8,64}$/.test(v)) {
+      v = (crypto.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))).replace(/[^A-Za-z0-9_-]/g, '');
+      localStorage.setItem(VID_KEY, v);
+    }
+    return v;
+  } catch { return ''; }
+}
 
 const WELCOME: Msg = {
   role: 'assistant',
@@ -63,9 +78,13 @@ export default function ResearchAssistantWidget() {
     setMessages(next);
     setLoading(true);
     try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: next.filter(m => m !== WELCOME) }) });
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-visitor-id': visitorId() }, body: JSON.stringify({ messages: next.filter(m => m !== WELCOME) }) });
       const d = await r.json().catch(() => ({}));
-      setMessages([...next, { role: 'assistant', content: d.reply || 'عذرًا، حدث خطأ. حاول مرة أخرى.' }]);
+      // Only same-site links are rendered, and only as plain links: never raw HTML from the model.
+      const links: Link[] | undefined = Array.isArray(d.links)
+        ? d.links.filter((l: any) => l && typeof l.href === 'string' && l.href.startsWith('/') && typeof l.label === 'string').slice(0, 5)
+        : undefined;
+      setMessages([...next, { role: 'assistant', content: d.reply || 'عذرًا، حدث خطأ. حاول مرة أخرى.', links }]);
     } catch {
       setMessages([...next, { role: 'assistant', content: 'تعذّر الاتصال الآن. تأكد من الإنترنت وحاول مرة أخرى.' }]);
     } finally { setLoading(false); }
@@ -109,6 +128,13 @@ export default function ResearchAssistantWidget() {
               <div key={i} className={`flex ${m.role === 'user' ? 'justify-start' : 'justify-start'} ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
                 <div className={`group relative max-w-[88%] px-4 py-3 text-[15px] leading-7 rounded-2xl ${m.role === 'user' ? 'bg-[#1B4D3E] text-white rounded-tl-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-tr-sm shadow-sm'}`}>
                   <Rich text={m.content} />
+                  {m.links && m.links.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {m.links.map((l, k) => (
+                        <a key={k} href={l.href} className="text-sm bg-[#1B4D3E]/5 border border-[#1B4D3E]/20 text-[#1B4D3E] px-3 py-1.5 rounded-full hover:bg-[#1B4D3E] hover:text-white transition">{l.label}</a>
+                      ))}
+                    </div>
+                  )}
                   {m.role === 'assistant' && i > 0 && (
                     <button onClick={() => copy(i, m.content)} aria-label="نسخ" className="absolute -bottom-3 left-2 bg-white border border-gray-200 rounded-full p-1.5 text-gray-500 hover:text-[#1B4D3E] shadow-sm">
                       {copied === i ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
