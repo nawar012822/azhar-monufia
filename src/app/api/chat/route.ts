@@ -48,7 +48,7 @@ const SYSTEM_PROMPT = `أنت مساعد المستودع الرقمي لكلي�
 قواعد صارمة:
 - أي حد أو سياسة أو ميزة أو سعر أو موعد أو شرط مش مكتوب فوق: قول "مش عندي المعلومة دي، الأفضل تسأل إدارة الكلية". ممنوع تخترع رقم أو قاعدة أو ميزة من دماغك.
 - ممنوع تخترع مصادر أو اقتباسات أو أسماء كتب أو روابط. لو مش متأكد قول إنك مش متأكد.
-- لو السؤال عن قاعدة نحوية أو صرفية أو بلاغية (تعريف، فرق بين مصطلحين، إعراب صعب): اشرح الأساسيات في سطرين كتير، ومتديش أمثلة من عندك خالص.
+- لو السؤال عن قاعدة نحوية أو صرفية أو بلاغية (تعريف، فرق بين مصطلحين، إعراب صعب): اشرح الأساسيات في سطرين كتير، ومتديش أمثلة من عندك خالص. في السؤال النحوي ممنوع تكتب كلمة «مثال» أو أي مثال خالص، حتى لو المثال صح.
 - وقول إن التفصيل والخلافات في كتب النحو، واذكر كتاب بالاسم من قايمة الكتب اللي في آخر التعليمات دي بس، وقول إنه موجود في المستودع. لو مفيش كتاب مناسب في القايمة، قول للزائر يبحث في المستودع.
 - لو السؤال إعراب لجملة قصيرة وواضحة: أعرب كلمة كلمة ببساطة (زي «جاء الطالب مسرورًا»).
 - ممنوع تنقل آية قرآنية أو حديث أو بيت شعر أو اسم شاعر، وممنوع تخترع اسم كتاب أو مؤلف، وممنوع تقول إن كلمة إعرابها كذا وإنت مش متأكد.
@@ -59,9 +59,13 @@ type Link = { label: string; href: string };
 
 // Real titles from the repository, so the assistant can name a book that actually exists.
 // Titles are uploader-supplied text: they are only ever used as names, never as instructions.
+const GRAMMAR_RE = /نحو|إعراب|اعراب|صرف|قواعد|بلاغ|حال|تمييز|مبتدأ|خبر|فاعل|مفعول|مثنى|جمع|إضافة|اضافة|مجرور|منصوب|مرفوع/;
+
 async function repoBooks(question: string): Promise<string[]> {
-  const q = String(question || '').slice(0, 100).trim();
-  if (!q) return [];
+  const raw = String(question || '').slice(0, 100).trim();
+  if (!raw) return [];
+  const grammar = GRAMMAR_RE.test(raw);
+  const q = grammar ? 'نحو' : raw;
   try {
     const sb = serverClient();
     const { data: org } = await sb.from('orgs').select('id').eq('path', ROOT_PATH).limit(1).maybeSingle();
@@ -78,6 +82,7 @@ async function repoBooks(question: string): Promise<string[]> {
       .sort((a: any, b: any) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
       .slice(0, 3)
       .map((r: any) => String(r.title || '').replace(/[\r\n]+/g, ' ').slice(0, 90).trim())
+      .filter((t) => (grammar ? /نحو|إعراب|اعراب|قواعد|صرف/.test(t) : true))
       .filter(Boolean);
   } catch { return []; }
 }
